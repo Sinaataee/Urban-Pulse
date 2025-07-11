@@ -1,0 +1,2737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UEC Validation Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .platform-header {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .platform-header h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .platform-header p {
+            color: #64748b;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        .auth-section {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 30px;
+        }
+
+        .auth-tabs {
+            display: flex;
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 30px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 15px 20px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #64748b;
+            transition: all 0.3s ease;
+        }
+
+        .auth-tab.active {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .auth-content {
+            display: none;
+        }
+
+        .auth-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+            font-size: 1rem;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            margin: 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
+        }
+
+        .admin-dashboard, .participant-interface {
+            display: none;
+        }
+
+        .admin-dashboard.active, .participant-interface.active {
+            display: block;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .dashboard-card h3 {
+            color: #1f2937;
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .team-code-list {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .team-code-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e5e7eb;
+        }
+
+        .team-code-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .code-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .code-info .team-name {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 2px;
+        }
+
+        .code-info .team-code {
+            font-family: 'Courier New', monospace;
+            color: #3b82f6;
+            font-size: 0.9rem;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-expired {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .round-navigation {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .round-steps {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .round-step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+            padding: 20px 10px;
+        }
+
+        .round-step::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: -50%;
+            width: 100%;
+            height: 2px;
+            background: #e5e7eb;
+            transform: translateY(-50%);
+            z-index: 1;
+        }
+
+        .round-step:last-child::after {
+            display: none;
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin: 0 auto 10px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .round-step.active .step-number {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+        }
+
+        .round-step.completed .step-number {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .step-title {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 5px;
+        }
+
+        .step-time {
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+
+        .secret-agenda-card {
+            background: linear-gradient(135deg, #1f2937, #374151);
+            color: white;
+            padding: 30px;
+            border-radius: 16px;
+            margin: 25px 0;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        .secret-agenda-card h3 {
+            color: #fbbf24;
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #fbbf24;
+            padding-bottom: 10px;
+        }
+
+        .objective-highlight {
+            background: rgba(251, 191, 36, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #fbbf24;
+            margin: 15px 0;
+        }
+
+        .strategy-input-section {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 16px;
+            margin: 25px 0;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .urban-areas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .urban-area-card {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+
+        .urban-area-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);
+        }
+
+        .urban-area-card.selected {
+            border-color: #fbbf24;
+            box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.3);
+        }
+
+        .timer-widget {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .evaluation-form {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 16px;
+            margin: 25px 0;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .form-section:last-child {
+            border-bottom: none;
+        }
+
+        .form-section h4 {
+            color: #1f2937;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .rating-input {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .rating-input input[type="range"] {
+            flex: 1;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .rating-value {
+            background: #3b82f6;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .submission-success {
+            background: #dcfce7;
+            color: #166534;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .platform-header h1 {
+                font-size: 2rem;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .round-steps {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .round-step::after {
+                display: none;
+            }
+            
+            .timer-widget {
+                position: relative;
+                top: auto;
+                right: auto;
+                margin: 20px 0;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="timer-widget hidden" id="timerWidget">
+        <span id="timerText">00:00</span>
+    </div>
+
+    <div class="container">
+        <div class="platform-header">
+            <h1>UEC Validation Platform</h1>
+            <p>Urban Environmental Comfort Framework Validation Research Platform</p>
+        </div>
+
+        <!-- Platform Access Control -->
+        <div class="auth-section" id="platformAccessSection">
+            <h2 style="margin-bottom: 25px; color: #1f2937; font-weight: 700; text-align: center;">Platform Access Control</h2>
+            <div class="form-group">
+                <label>Platform Access Code:</label>
+                <input type="password" id="platformAccessCode" placeholder="Enter platform access code" required>
+            </div>
+            <div style="text-align: center;">
+                <button class="btn" onclick="unlockPlatform()">Access Platform</button>
+            </div>
+            <div style="text-align: center; margin-top: 20px; color: #6b7280; font-size: 0.9rem;">
+                Contact the research administrator if you need access
+            </div>
+        </div>
+
+        <!-- Authentication Section -->
+        <div class="auth-section hidden" id="authSection">
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="switchAuthTab('admin')">Research Admin</button>
+                <button class="auth-tab" onclick="switchAuthTab('participant')">Participant Access</button>
+            </div>
+
+            <!-- Admin Login -->
+            <div class="auth-content active" id="adminAuth">
+                <h2 style="margin-bottom: 25px; color: #1f2937; font-weight: 700;">Administrator Panel</h2>
+                <div class="form-group">
+                    <label>Administrator Email:</label>
+                    <input type="email" id="adminEmail" placeholder="Enter your research email address" required>
+                </div>
+                <div class="form-group">
+                    <label>Research Session Name:</label>
+                    <input type="text" id="sessionName" placeholder="e.g., UEC Validation Study - October 2025" required value="">
+                </div>
+                <div class="form-group">
+                    <label>Access Duration (hours):</label>
+                    <input type="number" id="accessDuration" value="48" min="1" max="168" required>
+                </div>
+                <div style="text-align: center;">
+                    <button class="btn" onclick="initializeAdminSession()">Initialize Research Session</button>
+                </div>
+                <div id="adminInitError" class="error-message" style="display: none; margin-top: 15px;"></div>
+                
+                <!-- Debug info -->
+                <div style="margin-top: 20px; padding: 15px; background: #f8fafc; border-radius: 8px; font-size: 0.9rem; color: #6b7280;">
+                    <strong>Debug Info:</strong><br>
+                    Button Status: <span id="buttonStatus">Checking...</span><br>
+                    Platform State: <span id="platformStatus">Not initialized</span><br>
+                    <button onclick="testAdminFunction()" style="margin-top: 10px; padding: 5px 10px; background: #6b7280; color: white; border: none; border-radius: 4px; cursor: pointer;">🧪 Test Function</button>
+                </div>
+                <div id="adminInitError" class="error-message" style="display: none; margin-top: 15px;"></div>
+            </div>
+
+            <!-- Participant Login -->
+            <div class="auth-content" id="participantAuth">
+                <h2 style="margin-bottom: 25px; color: #1f2937; font-weight: 700;">Participant Access</h2>
+                <div class="form-group">
+                    <label>Team Access Code:</label>
+                    <input type="text" id="teamCode" placeholder="Enter your 6-digit team code" maxlength="6" style="text-transform: uppercase;" required>
+                </div>
+                <div class="form-group">
+                    <label>Team Member Name:</label>
+                    <input type="text" id="memberName" placeholder="Enter your full name" required>
+                </div>
+                <button class="btn" onclick="authenticateParticipant()">Access Game Platform</button>
+            </div>
+        </div>
+
+        <!-- Admin Dashboard -->
+        <div class="admin-dashboard" id="adminDashboard">
+            <div class="dashboard-grid">
+                <div class="dashboard-card">
+                    <h3>Session Management</h3>
+                    <div class="form-group">
+                        <label>Session Status:</label>
+                        <div id="sessionStatus" style="font-weight: 600; color: #10b981;">Active</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Administrator Email:</label>
+                        <div id="adminEmailDisplay" style="color: #3b82f6;"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Session Expires:</label>
+                        <div id="sessionExpiry" style="color: #ef4444;"></div>
+                    </div>
+                    <button class="btn btn-secondary" onclick="extendSession()">Extend Session</button>
+                    <button class="btn btn-danger" onclick="endSession()">End Session</button>
+                </div>
+
+                <div class="dashboard-card">
+                    <h3>Generate Team Codes</h3>
+                    <div class="form-group">
+                        <label>Number of Teams:</label>
+                        <select id="numberOfTeams">
+                            <option value="4">4 Teams</option>
+                            <option value="5">5 Teams</option>
+                            <option value="6">6 Teams</option>
+                            <option value="7">7 Teams</option>
+                        </select>
+                    </div>
+                    <button class="btn" onclick="generateTeamCodes()">Generate Access Codes</button>
+                    <button class="btn btn-secondary" onclick="downloadCodes()">Download Codes</button>
+                    <button class="btn" id="testAccessBtn" onclick="switchToParticipantTest()" style="display: none; background: linear-gradient(135deg, #8b5cf6, #7c3aed);">Test Participant Access</button>
+                </div>
+
+                <div class="dashboard-card">
+                    <h3>Platform Security</h3>
+                    <div class="form-group">
+                        <label>Current Access Code:</label>
+                        <div id="currentAccessCode" style="font-family: 'Courier New', monospace; color: #3b82f6; font-weight: 600;">123456789</div>
+                    </div>
+                    <div class="form-group">
+                        <label>New Access Code (9 digits):</label>
+                        <input type="text" id="newAccessCode" placeholder="Enter new 9-digit code" maxlength="9" pattern="[0-9]{9}">
+                    </div>
+                    <button class="btn" onclick="updateAccessCode()">Update Access Code</button>
+                    <button class="btn btn-secondary" onclick="generateParticipantLink()">Create Participant Link</button>
+                </div>
+
+                <div class="dashboard-card">
+                    <h3>Platform Deployment</h3>
+                    <div class="form-group">
+                        <label>Platform Hosting URL:</label>
+                        <input type="url" id="platformUrl" placeholder="https://yoursite.com/uec-platform.html" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px;">
+                        <div style="font-size: 0.9rem; color: #6b7280; margin-top: 5px;">
+                            Enter the online URL where this platform is hosted (leave empty to use current location)
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Current Platform URL:</label>
+                        <div id="currentPlatformUrl" style="font-family: monospace; background: #f8fafc; padding: 10px; border-radius: 6px; word-break: break-all; font-size: 0.9rem;"></div>
+                    </div>
+                    <button class="btn btn-secondary" onclick="updatePlatformUrl()">Update Platform URL</button>
+                    <button class="btn" onclick="showHostingInstructions(); console.log('Hosting button clicked');" style="background: linear-gradient(135deg, #f59e0b, #d97706);">📋 Hosting Instructions</button>
+                    
+                    <!-- Debug hosting button -->
+                    <div style="margin-top: 10px; font-size: 0.9rem; color: #6b7280;">
+                        <button onclick="testHostingButton()" style="background: #6b7280; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">🧪 Test Hosting Button</button>
+                    </div>
+                </div>
+
+                <div class="dashboard-card">
+                    <h3>Live Session Monitor</h3>
+                    <div class="form-group">
+                        <label>Active Teams:</label>
+                        <div id="activeTeams">0/0</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Submissions Received:</label>
+                        <div id="submissionsCount">0</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Pending Emails:</label>
+                        <div id="pendingEmailsCount">0</div>
+                    </div>
+                    <button class="btn" onclick="viewAllSubmissions()">📧 View All Emails</button>
+                    <button class="btn btn-secondary" onclick="exportResults()">💾 Export Results</button>
+                </div>
+
+                <div class="dashboard-card">
+                    <h3>Data Export</h3>
+                    <div class="form-group">
+                        <label>Export Options:</label>
+                        <div style="margin: 10px 0;">
+                            <input type="checkbox" id="exportExcel" checked> 
+                            <label for="exportExcel" style="margin-left: 5px;">Excel Format (.xlsx)</label>
+                        </div>
+                        <div style="margin: 10px 0;">
+                            <input type="checkbox" id="exportWord" checked> 
+                            <label for="exportWord" style="margin-left: 5px;">Word Document (.docx)</label>
+                        </div>
+                    </div>
+                    <button class="btn" onclick="exportAllData()">Export & Email All Data</button>
+                    <button class="btn btn-secondary" onclick="exportIndividualTeam()">Export Single Team</button>
+                </div>
+            </div>
+
+            <div class="team-code-list" id="teamCodesList">
+                <h3 style="margin-bottom: 20px; color: #1f2937;">Generated Team Access Codes</h3>
+                <div id="codesList"></div>
+            </div>
+        </div>
+
+        <!-- Participant Interface -->
+        <div class="participant-interface" id="participantInterface">
+            <!-- Round Navigation -->
+            <div class="round-navigation">
+                <h2 style="margin-bottom: 20px; color: #1f2937;">Game Progress</h2>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+                <div class="round-steps" id="roundSteps">
+                    <div class="round-step active" data-round="1">
+                        <div class="step-number">1</div>
+                        <div class="step-title">Strategy Selection</div>
+                        <div class="step-time">30 minutes</div>
+                    </div>
+                    <div class="round-step" data-round="2">
+                        <div class="step-number">2</div>
+                        <div class="step-title">Analysis & Planning</div>
+                        <div class="step-time">25 minutes</div>
+                    </div>
+                    <div class="round-step" data-round="3">
+                        <div class="step-number">3</div>
+                        <div class="step-title">Council Negotiation</div>
+                        <div class="step-time">20 minutes</div>
+                    </div>
+                    <div class="round-step" data-round="4">
+                        <div class="step-number">4</div>
+                        <div class="step-title">Final Assessment</div>
+                        <div class="step-time">35 minutes</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Secret Agenda Display -->
+            <div class="secret-agenda-card" id="secretAgenda">
+                <h3 id="agendaTitle">Your Secret Objective</h3>
+                <div class="objective-highlight" id="agendaObjective"></div>
+                <div id="agendaDetails"></div>
+            </div>
+
+            <!-- Game Content Area -->
+            <div id="gameContent">
+                <!-- Round 1: Strategy Selection -->
+                <div class="strategy-input-section" id="round1Content">
+                    <h3>Round 1: Initial Strategy Selection</h3>
+                    <p style="margin-bottom: 20px; color: #6b7280;">Select up to 3 urban areas and define your strategies for each area.</p>
+                    
+                    <h4>Available Urban Areas (Select up to 3):</h4>
+                    <div class="urban-areas-grid">
+                        <div class="urban-area-card" data-area="city-center">City Center</div>
+                        <div class="urban-area-card" data-area="poor-residential">Poor Residential Area</div>
+                        <div class="urban-area-card" data-area="slums">Slums</div>
+                        <div class="urban-area-card" data-area="periphery">Periphery</div>
+                        <div class="urban-area-card" data-area="middle-class">Middle Class Areas</div>
+                        <div class="urban-area-card" data-area="commercial">Commercial District</div>
+                        <div class="urban-area-card" data-area="risky-slums">Risky Slums</div>
+                        <div class="urban-area-card" data-area="rich-residential">Rich Residential</div>
+                    </div>
+
+                    <div id="selectedAreasStrategies"></div>
+                    
+                    <div style="text-align: center; margin-top: 30px;">
+                        <button class="btn" onclick="submitRound1()" id="submitRound1Btn" disabled>Submit Strategy Selection</button>
+                    </div>
+                </div>
+
+                <!-- Round 2: Analysis & Independent Planning -->
+                <div class="evaluation-form hidden" id="round2Content">
+                    <h3>Round 2: Analysis & Independent Planning</h3>
+                    
+                    <div class="form-section">
+                        <h4>Round 1 Results Analysis</h4>
+                        <div class="form-group">
+                            <label>Your team's UEC Score achieved:</label>
+                            <input type="number" id="r2_uec_score" min="0" max="100">
+                        </div>
+                        <div class="form-group">
+                            <label>Satisfaction with results (1-10):</label>
+                            <div class="rating-input">
+                                <input type="range" id="r2_satisfaction" min="1" max="10" value="5" oninput="updateRatingDisplay(this, 'r2_satisfaction_value')">
+                                <div class="rating-value" id="r2_satisfaction_value">5</div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Strategies that worked well:</label>
+                            <textarea id="r2_good_strategies" rows="3" placeholder="Describe effective strategies..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Strategies that didn't work:</label>
+                            <textarea id="r2_bad_strategies" rows="3" placeholder="Describe ineffective strategies..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h4>New Strategy Selection for Round 2</h4>
+                        <div class="urban-areas-grid" id="round2AreaSelection">
+                            <div class="urban-area-card" data-area="city-center">City Center</div>
+                            <div class="urban-area-card" data-area="poor-residential">Poor Residential Area</div>
+                            <div class="urban-area-card" data-area="slums">Slums</div>
+                            <div class="urban-area-card" data-area="periphery">Periphery</div>
+                            <div class="urban-area-card" data-area="middle-class">Middle Class Areas</div>
+                            <div class="urban-area-card" data-area="commercial">Commercial District</div>
+                            <div class="urban-area-card" data-area="risky-slums">Risky Slums</div>
+                            <div class="urban-area-card" data-area="rich-residential">Rich Residential</div>
+                        </div>
+                        <div id="round2SelectedStrategies"></div>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 30px;">
+                        <button class="btn" onclick="submitRound2()">Submit Round 2 Analysis</button>
+                    </div>
+                </div>
+
+                <!-- Round 3: Council Formation -->
+                <div class="evaluation-form hidden" id="round3Content">
+                    <h3>Round 3: Council Formation & Negotiation</h3>
+                    
+                    <div class="form-section">
+                        <h4>Council Representative Selection</h4>
+                        <div class="form-group">
+                            <label>Select your team's council representative:</label>
+                            <input type="text" id="r3_representative" placeholder="Enter representative's name">
+                        </div>
+                        <div class="form-group">
+                            <label>Key negotiation priorities for your representative:</label>
+                            <textarea id="r3_priorities" rows="3" placeholder="What should your representative prioritize in council discussions?"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h4>Council Strategy Assignment (To be filled after council discussion)</h4>
+                        <div class="form-group">
+                            <label>Strategies assigned by council:</label>
+                            <textarea id="r3_assigned_strategies" rows="4" placeholder="Council will assign strategies here..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Your assessment of council decisions:</label>
+                            <textarea id="r3_council_assessment" rows="3" placeholder="How do you feel about the council's decisions?"></textarea>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 30px;">
+                        <button class="btn" onclick="submitRound3()">Submit Council Phase</button>
+                    </div>
+                </div>
+
+                <!-- Round 4: Final Assessment -->
+                <div class="evaluation-form hidden" id="round4Content">
+                    <h3>Round 4: Final Assessment & UEC Concept Revelation</h3>
+                    
+                    <div class="form-section">
+                        <h4>Overall Game Assessment</h4>
+                        <div class="form-group">
+                            <label>Final city-wide UEC score:</label>
+                            <input type="number" id="r4_final_uec" min="0" max="100">
+                        </div>
+                        <div class="form-group">
+                            <label>Your team's contribution to city improvement (1-10):</label>
+                            <div class="rating-input">
+                                <input type="range" id="r4_contribution" min="1" max="10" value="5" oninput="updateRatingDisplay(this, 'r4_contribution_value')">
+                                <div class="rating-value" id="r4_contribution_value">5</div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>App scoring accuracy - Did app scores match your expectations?</label>
+                            <div class="rating-input">
+                                <input type="range" id="r4_app_accuracy" min="1" max="10" value="5" oninput="updateRatingDisplay(this, 'r4_app_accuracy_value')">
+                                <div class="rating-value" id="r4_app_accuracy_value">5</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h4>UEC Concept Revelation</h4>
+                        <div class="form-group">
+                            <label>How did you define "Urban Environmental Comfort"?</label>
+                            <textarea id="r4_uec_definition" rows="4" placeholder="Describe your understanding of environmental comfort in urban areas..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Primary UEC factors you prioritized:</label>
+                            <textarea id="r4_uec_factors" rows="3" placeholder="List the main factors you considered important..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Key relationships you focused on:</label>
+                            <textarea id="r4_relationships" rows="3" placeholder="What connections between factors did you consider?"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Strategy selection rationale:</label>
+                            <textarea id="r4_strategy_rationale" rows="4" placeholder="What criteria guided your strategy choices throughout the game?"></textarea>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 30px;">
+                        <button class="btn" onclick="submitFinalAssessment()">Submit Final Assessment</button>
+                        <button class="btn btn-secondary" onclick="exportTeamData()" style="margin-left: 10px;">Export Team Data</button>
+                    </div>
+                </div>
+
+                <!-- Completion Message -->
+                <div class="submission-success hidden" id="completionMessage">
+                    <h3>🎉 Game Completed Successfully!</h3>
+                    <p>Thank you for participating in the UEC validation study. Your responses have been submitted to the research team.</p>
+                    <p><strong>Next Steps:</strong> Please wait for further instructions from the research administrator.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Platform State
+        let platformState = {
+            isAdminLoggedIn: false,
+            isParticipantLoggedIn: false,
+            isPlatformUnlocked: false,
+            adminEmail: '',
+            sessionName: '',
+            accessDuration: 48,
+            sessionStartTime: null,
+            teamData: [],
+            currentTeam: null,
+            currentRound: 1,
+            selectedAreas: [],
+            roundTimers: [30, 25, 20, 35],
+            timerInterval: null,
+            platformAccessCode: '123456789',
+            participantLink: ''
+        };
+
+        // Secret Agendas Database
+        const secretAgendas = {
+            'A': {
+                title: 'Economic Development Focus',
+                objective: 'Maximize economic vitality and commercial activities',
+                details: 'Your primary goal is to increase business opportunities and economic growth. Prioritize areas with highest economic potential. You may clash with environmental and social equity groups.',
+                successMetric: 'Economic activity indicators in selected areas'
+            },
+            'B': {
+                title: 'Environmental Protection Priority',
+                objective: 'Minimize environmental degradation and maximize ecological sustainability',
+                details: 'Your primary goal is to reduce pollution, increase green spaces, and improve air quality. Restrict development that may harm the environment. You may oppose economic development and density increases.',
+                successMetric: 'Environmental quality indicators (air, noise, green space)'
+            },
+            'C': {
+                title: 'Social Equity Champions',
+                objective: 'Improve conditions for vulnerable populations and reduce inequality',
+                details: 'Your primary goal is to focus on poor areas, slums, and underserved communities. Redistribute resources from wealthy to poor areas. You may conflict with economic efficiency and environmental preservation.',
+                successMetric: 'Social accessibility and equity improvements'
+            },
+            'D': {
+                title: 'Urban Efficiency Advocates',
+                objective: 'Optimize urban systems for maximum efficiency and connectivity',
+                details: 'Your primary goal is to improve transportation, reduce sprawl, and increase density. Prioritize middle-class and central areas for efficiency gains. You may conflict with environmental concerns and social equity.',
+                successMetric: 'Infrastructure efficiency and spatial integration'
+            },
+            'E': {
+                title: 'Public Health Prioritizers',
+                objective: 'Maximize health and well-being outcomes for residents',
+                details: 'Your primary goal is to reduce health risks, improve comfort, and promote active living. Focus on areas with highest health impact potential. You may conflict with economic development and urban efficiency.',
+                successMetric: 'Health and comfort indicators'
+            },
+            'F': {
+                title: 'Heritage & Identity Preservers',
+                objective: 'Maintain cultural identity and community character',
+                details: 'Your primary goal is to preserve existing community structures and local identity. Resist major changes that might disrupt communities. You may oppose efficiency improvements and economic development.',
+                successMetric: 'Community cohesion and cultural preservation'
+            },
+            'G': {
+                title: 'Innovation & Technology Drivers',
+                objective: 'Implement cutting-edge urban solutions and smart city technologies',
+                details: 'Your primary goal is to test innovative approaches and technological solutions. Prioritize areas where technology can have maximum impact. You may conflict with heritage preservation and social equity.',
+                successMetric: 'Technology adoption and innovation indicators'
+            }
+        };
+
+        // Platform Access Control Functions
+        function unlockPlatform() {
+            console.log('Unlock platform clicked');
+            
+            const enteredCode = document.getElementById('platformAccessCode').value.trim();
+            const storedCode = localStorage.getItem('platformAccessCode') || '123456789';
+            
+            console.log('Entered code:', enteredCode);
+            console.log('Expected code:', storedCode);
+            
+            if (enteredCode === storedCode) {
+                platformState.isPlatformUnlocked = true;
+                platformState.platformAccessCode = storedCode;
+                
+                console.log('✅ Platform unlocked successfully');
+                
+                // Hide platform access section and show auth section
+                const platformAccessSection = document.getElementById('platformAccessSection');
+                const authSection = document.getElementById('authSection');
+                
+                if (platformAccessSection && authSection) {
+                    platformAccessSection.classList.add('hidden');
+                    authSection.classList.remove('hidden');
+                    
+                    // Auto-select admin tab
+                    setTimeout(() => {
+                        switchAuthTab('admin');
+                        updateDebugStatus('platformStatus', '✅ Platform unlocked - Admin access ready');
+                    }, 100);
+                    
+                    console.log('UI updated - auth section should be visible');
+                } else {
+                    console.error('Could not find platform sections');
+                    showError('Error updating interface. Please refresh and try again.');
+                }
+                
+            } else {
+                console.log('❌ Invalid access code');
+                showError('Invalid access code. Please check your code and try again.');
+            }
+        }
+
+        function updateAccessCode() {
+            const newCode = document.getElementById('newAccessCode').value;
+            
+            if (!newCode || newCode.length !== 9 || !/^\d{9}$/.test(newCode)) {
+                showError('Please enter a valid 9-digit numeric code.');
+                return;
+            }
+            
+            if (newCode === platformState.platformAccessCode) {
+                showError('New code must be different from current code.');
+                return;
+            }
+            
+            const oldCode = platformState.platformAccessCode;
+            platformState.platformAccessCode = newCode;
+            localStorage.setItem('platformAccessCode', newCode);
+            
+            document.getElementById('currentAccessCode').textContent = newCode;
+            document.getElementById('newAccessCode').value = '';
+            
+            // Create email content for access code change
+            const accessCodeEmailContent = `
+Subject: UEC Platform - Access Code Updated
+
+PLATFORM ACCESS CODE CHANGE NOTIFICATION
+
+Session Details:
+- Study Name: ${platformState.sessionName}
+- Administrator: ${platformState.adminEmail}
+- Date Updated: ${new Date().toLocaleString()}
+
+Access Code Change:
+- Previous Code: ${oldCode}
+- New Code: ${newCode}
+
+Platform URL: ${window.location.origin}${window.location.pathname}
+
+SECURITY NOTICE:
+- Keep this code confidential
+- Share only with authorized researchers
+- Use this code to access the platform admin panel
+
+If you did not request this change, please contact technical support immediately.
+
+Best regards,
+UEC Platform System
+            `.trim();
+            
+            // Show email preview
+            showEmailPreview('Platform Access Code Updated', accessCodeEmailContent, platformState.adminEmail);
+            
+            console.log('Access code updated from', oldCode, 'to', newCode);
+        }
+
+        function sendAccessCodeEmail(newCode, oldCode) {
+            const emailContent = {
+                to: platformState.adminEmail,
+                subject: 'UEC Platform - New Access Code Generated',
+                body: `
+                    UEC Validation Platform Access Code Update
+                    
+                    Session: ${platformState.sessionName}
+                    Administrator: ${platformState.adminEmail}
+                    Date: ${new Date().toLocaleString()}
+                    
+                    Old Access Code: ${oldCode}
+                    New Access Code: ${newCode}
+                    
+                    Please keep this code secure and share only with authorized researchers.
+                    
+                    Platform URL: ${window.location.origin}${window.location.pathname}
+                `,
+                timestamp: new Date().toISOString()
+            };
+            
+            console.log('Access code email sent:', emailContent);
+            localStorage.setItem('lastAccessCodeEmail', JSON.stringify(emailContent));
+        }
+
+        function generateParticipantLink() {
+            if (!platformState.teamData || platformState.teamData.length === 0) {
+                showError('Please generate team codes first.');
+                return;
+            }
+            
+            if (!platformState.adminEmail) {
+                showError('Admin email not found. Please initialize session first.');
+                return;
+            }
+            
+            // Get platform URL (custom or current)
+            const customUrl = document.getElementById('platformUrl').value.trim();
+            const baseUrl = customUrl || (window.location.origin + window.location.pathname);
+            
+            // Validate custom URL if provided
+            if (customUrl && !isValidUrl(customUrl)) {
+                showError('Please enter a valid URL (must start with https://)');
+                return;
+            }
+            
+            // Create participant-only URL with a unique identifier
+            const participantId = btoa(JSON.stringify({
+                sessionName: platformState.sessionName,
+                timestamp: Date.now(),
+                teams: platformState.teamData.length
+            })).replace(/[^a-zA-Z0-9]/g, '').substring(0, 16);
+            
+            platformState.participantLink = `${baseUrl}?mode=participant&session=${participantId}`;
+            
+            // Store participant session data
+            localStorage.setItem(`participant_${participantId}`, JSON.stringify({
+                teamData: platformState.teamData,
+                sessionName: platformState.sessionName,
+                adminEmail: platformState.adminEmail,
+                created: new Date().toISOString()
+            }));
+            
+            // Create email content for participant link
+            const participantEmailContent = `
+Subject: UEC Study - Participant Access Link & Team Codes
+
+Dear Research Participants,
+
+You are invited to participate in the UEC (Urban Environmental Comfort) Validation Study.
+
+SESSION DETAILS:
+- Study Name: ${platformState.sessionName}
+- Session Date: ${new Date().toLocaleString()}
+- Duration: Approximately 2 hours
+- Expires: ${new Date(Date.now() + platformState.accessDuration * 60 * 60 * 1000).toLocaleString()}
+
+PARTICIPANT ACCESS LINK:
+${platformState.participantLink}
+
+TEAM ACCESS CODES:
+${platformState.teamData.map(team => 
+    `Group ${team.groupLetter}: ${team.code} - ${team.groupName}`
+).join('\n')}
+
+INSTRUCTIONS:
+1. Click the participant link above
+2. Enter your assigned team access code
+3. Enter your full name
+4. Follow the 4-round game structure
+5. Complete all evaluation forms
+
+IMPORTANT NOTES:
+- Each team has a different secret objective
+- Do not share your team's objective with other teams
+- All responses will be used for academic research
+- Your participation is voluntary and confidential
+
+${customUrl ? `
+TECHNICAL NOTE:
+This study is hosted online at: ${baseUrl}
+If you experience any technical issues, please contact the administrator.
+` : `
+TECHNICAL NOTE:
+This link may only work if you're on the same network as the administrator.
+For workshop use, ensure the platform is hosted online.
+`}
+
+For technical support or questions, contact: ${platformState.adminEmail}
+
+Best regards,
+UEC Research Team
+            `.trim();
+            
+            // Show the email content and copy functionality
+            showEmailPreview('Participant Link & Codes', participantEmailContent, platformState.adminEmail);
+            
+            // Also show participant link interface
+            showParticipantLink(platformState.participantLink);
+            
+            console.log('Participant link generated:', platformState.participantLink);
+        }
+
+        function isValidUrl(string) {
+            try {
+                const url = new URL(string);
+                return url.protocol === 'https:' || url.protocol === 'http:';
+            } catch (_) {
+                return false;
+            }
+        }
+
+        function updatePlatformUrl() {
+            const newUrl = document.getElementById('platformUrl').value.trim();
+            
+            if (newUrl && !isValidUrl(newUrl)) {
+                showError('Please enter a valid URL (e.g., https://yoursite.com/uec-platform.html)');
+                return;
+            }
+            
+            // Store the custom URL
+            if (newUrl) {
+                localStorage.setItem('customPlatformUrl', newUrl);
+                showQuickNotification('✅ Platform URL updated!', '#10b981');
+            } else {
+                localStorage.removeItem('customPlatformUrl');
+                showQuickNotification('✅ Platform URL reset to current location', '#10b981');
+            }
+            
+            updateCurrentPlatformUrlDisplay();
+        }
+
+        function updateCurrentPlatformUrlDisplay() {
+            const customUrl = document.getElementById('platformUrl').value.trim();
+            const currentUrl = customUrl || (window.location.origin + window.location.pathname);
+            const displayElement = document.getElementById('currentPlatformUrl');
+            
+            if (displayElement) {
+                displayElement.innerHTML = '';
+                
+                // Create URL display
+                const urlSpan = document.createElement('span');
+                urlSpan.textContent = currentUrl;
+                displayElement.appendChild(urlSpan);
+                
+                // Add status indicator
+                const statusDiv = document.createElement('div');
+                statusDiv.style.cssText = 'margin-top: 8px; padding: 8px; border-radius: 6px; font-size: 0.85rem; font-weight: 600;';
+                
+                if (currentUrl.startsWith('https://') && !currentUrl.includes('localhost') && !currentUrl.includes('127.0.0.1') && !currentUrl.includes('file://')) {
+                    statusDiv.style.background = '#dcfce7';
+                    statusDiv.style.color = '#166534';
+                    statusDiv.innerHTML = '✅ Ready for online workshop';
+                } else if (currentUrl.startsWith('http://') && !currentUrl.includes('localhost')) {
+                    statusDiv.style.background = '#fef3c7';
+                    statusDiv.style.color = '#92400e';
+                    statusDiv.innerHTML = '⚠️ HTTP (not secure) - Consider HTTPS hosting';
+                } else {
+                    statusDiv.style.background = '#fee2e2';
+                    statusDiv.style.color = '#991b1b';
+                    statusDiv.innerHTML = '❌ Local only - Participants cannot access online';
+                }
+                
+                displayElement.appendChild(statusDiv);
+            }
+        }
+
+        function showHostingInstructions() {
+            console.log('Hosting instructions button clicked');
+            
+            const instructions = `
+🌐 HOW TO HOST YOUR UEC PLATFORM ONLINE
+
+For your workshop participants to access the platform, you need to host this HTML file online. Here are your options:
+
+📋 QUICK & FREE HOSTING OPTIONS:
+
+1. **GitHub Pages (Recommended - Free)**
+   • Create account at github.com
+   • Create new repository (e.g., "uec-platform")
+   • Upload your HTML file
+   • Enable GitHub Pages in repository settings
+   • Your URL: https://yourusername.github.io/uec-platform/filename.html
+
+2. **Netlify (Easy Drag & Drop - Free)**
+   • Go to netlify.com
+   • Drag your HTML file to "Deploy manually"
+   • Get instant URL: https://random-name.netlify.app
+
+3. **Vercel (Professional - Free)**
+   • Visit vercel.com
+   • Upload your file
+   • Get URL: https://your-project.vercel.app
+
+4. **Google Drive (Simple but Limited)**
+   • Upload HTML to Google Drive
+   • Right-click → Share → Get link
+   • Note: May have limitations
+
+💡 RECOMMENDED STEPS:
+
+1. Choose a hosting service (GitHub Pages recommended)
+2. Upload your UEC platform HTML file
+3. Copy the public URL (e.g., https://yoursite.com/uec-platform.html)
+4. Enter that URL in "Platform Hosting URL" field above
+5. Generate participant links - they'll now work online!
+
+🔧 TECHNICAL REQUIREMENTS:
+
+• File must be accessible via HTTPS
+• No login required for participants
+• File should be named something clear (e.g., uec-platform.html)
+• Test the URL in an incognito window before workshop
+
+⚠️ BEFORE YOUR WORKSHOP:
+
+• Test participant links on different devices
+• Ensure team codes work properly
+• Have backup access method ready
+• Share links 24 hours before workshop
+
+Need help? Contact your IT department or use GitHub Pages for the easiest solution!
+            `;
+            
+            // Create hosting instructions modal
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 10000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+            `;
+            
+            const content = document.createElement('div');
+            content.style.cssText = `
+                background: white;
+                border-radius: 16px;
+                padding: 30px;
+                max-width: 800px;
+                max-height: 90vh;
+                overflow-y: auto;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+                position: relative;
+            `;
+            
+            content.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #e5e7eb;">
+                    <h2 style="color: #1f2937; margin: 0;">🌐 Platform Hosting Instructions</h2>
+                    <button onclick="this.closest('.hosting-modal').remove()" style="background: #ef4444; color: white; border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; font-size: 20px;">×</button>
+                </div>
+                
+                <div style="white-space: pre-wrap; line-height: 1.6; color: #374151; font-size: 1rem;">${instructions}</div>
+                
+                <div style="margin-top: 30px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                    <button onclick="copyHostingInstructions()" class="btn btn-secondary">📋 Copy Instructions</button>
+                    <button onclick="downloadHostingGuide()" class="btn">💾 Download Guide</button>
+                    <button onclick="window.open('https://pages.github.com', '_blank')" class="btn" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">🚀 Open GitHub Pages</button>
+                </div>
+                
+                <div style="margin-top: 20px; padding: 15px; background: #fef3c7; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                    <strong>🎯 Quick Start:</strong> For fastest setup, use GitHub Pages. Create account → Upload file → Enable Pages → Copy URL → Enter in platform above!
+                </div>
+            `;
+            
+            modal.className = 'hosting-modal';
+            modal.appendChild(content);
+            document.body.appendChild(modal);
+            
+            // Close modal when clicking outside
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+            
+            console.log('Hosting instructions modal displayed');
+        }
+
+        function copyHostingInstructions() {
+            const instructions = `
+🌐 UEC PLATFORM HOSTING GUIDE
+
+For your workshop participants to access the platform, you need to host this HTML file online.
+
+📋 QUICK & FREE HOSTING OPTIONS:
+
+1. GitHub Pages (Recommended - Free)
+   • Create account at github.com
+   • Create new repository (e.g., "uec-platform")
+   • Upload your HTML file
+   • Enable GitHub Pages in repository settings
+   • Your URL: https://yourusername.github.io/uec-platform/filename.html
+
+2. Netlify (Easy Drag & Drop - Free)
+   • Go to netlify.com
+   • Drag your HTML file to "Deploy manually"
+   • Get instant URL: https://random-name.netlify.app
+
+3. Vercel (Professional - Free)
+   • Visit vercel.com
+   • Upload your file
+   • Get URL: https://your-project.vercel.app
+
+💡 RECOMMENDED STEPS:
+1. Choose GitHub Pages
+2. Upload your UEC platform HTML file
+3. Copy the public URL
+4. Enter URL in platform "Platform Hosting URL" field
+5. Generate participant links - they'll work online!
+
+🔧 TECHNICAL REQUIREMENTS:
+• File must be accessible via HTTPS
+• No login required for participants
+• Test the URL before workshop
+
+⚠️ BEFORE WORKSHOP:
+• Test participant links on different devices
+• Share links 24 hours before workshop
+            `;
+            
+            navigator.clipboard.writeText(instructions).then(() => {
+                showQuickNotification('✅ Hosting instructions copied!', '#10b981');
+            }).catch(() => {
+                alert('Instructions copied! (Fallback method)');
+            });
+        }
+
+        function downloadHostingGuide() {
+            const guide = `UEC PLATFORM HOSTING GUIDE
+========================================
+
+For your workshop participants to access the platform, you need to host this HTML file online.
+
+QUICK & FREE HOSTING OPTIONS:
+
+1. GitHub Pages (Recommended - Free)
+   - Create account at github.com
+   - Create new repository (e.g., "uec-platform")
+   - Upload your HTML file
+   - Enable GitHub Pages in repository settings
+   - Your URL: https://yourusername.github.io/uec-platform/filename.html
+
+2. Netlify (Easy Drag & Drop - Free)
+   - Go to netlify.com
+   - Drag your HTML file to "Deploy manually"
+   - Get instant URL: https://random-name.netlify.app
+
+3. Vercel (Professional - Free)
+   - Visit vercel.com
+   - Upload your file
+   - Get URL: https://your-project.vercel.app
+
+RECOMMENDED STEPS:
+1. Choose GitHub Pages
+2. Upload your UEC platform HTML file
+3. Copy the public URL
+4. Enter URL in platform "Platform Hosting URL" field
+5. Generate participant links - they'll work online!
+
+TECHNICAL REQUIREMENTS:
+- File must be accessible via HTTPS
+- No login required for participants
+- Test the URL before workshop
+
+BEFORE WORKSHOP:
+- Test participant links on different devices
+- Share links 24 hours before workshop
+
+Generated: ${new Date().toLocaleString()}
+`;
+            
+            const blob = new Blob([guide], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `UEC_Platform_Hosting_Guide_${new Date().toISOString().split('T')[0]}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showQuickNotification('✅ Hosting guide downloaded!', '#10b981');
+        }
+
+        function showParticipantLink(link) {
+            const linkDisplay = document.createElement('div');
+            linkDisplay.style.cssText = 'background: #f0f9ff; border: 2px solid #0ea5e9; border-radius: 12px; padding: 20px; margin: 20px 0;';
+            linkDisplay.innerHTML = `
+                <h4 style="color: #0c4a6e; margin-bottom: 15px;">Participant Access Link Generated</h4>
+                <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #e0e7ff; margin-bottom: 15px;">
+                    <label style="font-weight: 600; color: #374151; display: block; margin-bottom: 5px;">Share this link with participants:</label>
+                    <input type="text" value="${link}" readonly style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-family: monospace; font-size: 0.9rem;">
+                </div>
+                <div style="text-align: center;">
+                    <button class="btn btn-secondary" onclick="copyParticipantLink('${link}')">Copy Link</button>
+                    <button class="btn" onclick="emailParticipantLink('${link}')">Email Link to Teams</button>
+                </div>
+            `;
+            
+            // Remove existing link display
+            const existing = document.querySelector('.participant-link-display');
+            if (existing) existing.remove();
+            
+            linkDisplay.className = 'participant-link-display';
+            document.getElementById('teamCodesList').appendChild(linkDisplay);
+        }
+
+        function showParticipantLink(link) {
+            const linkDisplay = document.createElement('div');
+            linkDisplay.style.cssText = 'background: #f0f9ff; border: 2px solid #0ea5e9; border-radius: 12px; padding: 20px; margin: 20px 0;';
+            linkDisplay.innerHTML = `
+                <h4 style="color: #0c4a6e; margin-bottom: 15px;">🔗 Participant Access Link Generated</h4>
+                <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #e0e7ff; margin-bottom: 15px;">
+                    <label style="font-weight: 600; color: #374151; display: block; margin-bottom: 5px;">Share this link with participants:</label>
+                    <input type="text" value="${link}" readonly onclick="this.select()" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-family: monospace; font-size: 0.9rem; background: #f8fafc;">
+                </div>
+                <div style="text-align: center; gap: 10px; display: flex; justify-content: center; flex-wrap: wrap;">
+                    <button class="btn btn-secondary" onclick="copyToClipboard('${link}')">📋 Copy Link</button>
+                    <button class="btn" onclick="testParticipantLink('${link}')" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">🧪 Test Link</button>
+                </div>
+                <div style="margin-top: 15px; padding: 12px; background: #fef3c7; border-radius: 8px; font-size: 0.9rem;">
+                    <strong>📝 Instructions:</strong> Send this link to participants along with their team codes. They will access the platform directly without needing the admin access code.
+                </div>
+            `;
+            
+            // Remove existing link display
+            const existing = document.querySelector('.participant-link-display');
+            if (existing) existing.remove();
+            
+            linkDisplay.className = 'participant-link-display';
+            document.getElementById('teamCodesList').appendChild(linkDisplay);
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showQuickNotification('✅ Link copied to clipboard!', '#10b981');
+            }).catch(() => {
+                // Fallback
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showQuickNotification('✅ Link copied to clipboard!', '#10b981');
+            });
+        }
+
+        function testParticipantLink(link) {
+            if (confirm('Open participant link in new tab to test?')) {
+                window.open(link, '_blank');
+            }
+        }
+
+        function showQuickNotification(message, color = '#3b82f6') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${color};
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 10000;
+                font-weight: 600;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 3000);
+        }
+
+        function showEmailPreview(subject, content, recipient) {
+            // Remove any existing email preview
+            const existingPreview = document.querySelector('.email-preview');
+            if (existingPreview) existingPreview.remove();
+            
+            const emailPreview = document.createElement('div');
+            emailPreview.className = 'email-preview';
+            emailPreview.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                border: 2px solid #3b82f6;
+                border-radius: 12px;
+                padding: 30px;
+                max-width: 80%;
+                max-height: 80%;
+                overflow-y: auto;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+                z-index: 10000;
+            `;
+            
+            emailPreview.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #e5e7eb;">
+                    <h3 style="color: #1f2937; margin: 0;">📧 Email Ready to Send</h3>
+                    <button onclick="this.parentElement.parentElement.remove()" style="background: #ef4444; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 18px;">×</button>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <strong>To:</strong> ${recipient}<br>
+                    <strong>Subject:</strong> ${subject}
+                </div>
+                
+                <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 20px; white-space: pre-wrap; font-family: monospace; max-height: 300px; overflow-y: auto; border: 1px solid #e5e7eb;">${content}</div>
+                
+                <div style="text-align: center; gap: 10px; display: flex; justify-content: center; flex-wrap: wrap;">
+                    <button onclick="copyEmailContent('${btoa(content)}')" class="btn btn-secondary">Copy Email Content</button>
+                    <button onclick="downloadEmailAsFile('${subject}', '${btoa(content)}')" class="btn">Download as .txt File</button>
+                    <button onclick="showEmailInstructions()" class="btn" style="background: linear-gradient(135deg, #10b981, #059669);">How to Send This Email</button>
+                </div>
+                
+                <div style="margin-top: 20px; padding: 15px; background: #fef3c7; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                    <strong>⚠️ Important:</strong> Copy the email content above and send it through your email client to: <strong>${recipient}</strong>
+                </div>
+            `;
+            
+            document.body.appendChild(emailPreview);
+        }
+
+        function copyEmailContent(encodedContent) {
+            const content = atob(encodedContent);
+            navigator.clipboard.writeText(content).then(() => {
+                alert('✅ Email content copied to clipboard! Paste it into your email client.');
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = content;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('✅ Email content copied to clipboard!');
+            });
+        }
+
+        function downloadEmailAsFile(subject, encodedContent) {
+            const content = atob(encodedContent);
+            const filename = `${subject.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.txt`;
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+            alert('✅ Email content downloaded! Send this file content to participants.');
+        }
+
+        function showEmailInstructions() {
+            alert(`📧 HOW TO SEND THE EMAIL:
+
+1. Copy the email content (click "Copy Email Content")
+2. Open your email client (Gmail, Outlook, etc.)
+3. Create a new email
+4. Paste the content into the email body
+5. Add the recipient: ${platformState.adminEmail}
+6. Send the email
+
+OR
+
+1. Download the .txt file
+2. Open the file and copy its contents  
+3. Paste into your email client
+4. Send to participants
+
+The email contains the participant link and all team codes needed for the study.`);
+        }
+        // Authentication Functions
+        function switchAuthTab(tab) {
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.auth-content').forEach(c => c.classList.remove('active'));
+            
+            document.querySelector(`[onclick="switchAuthTab('${tab}')"]`).classList.add('active');
+            document.getElementById(`${tab}Auth`).classList.add('active');
+        }
+
+        function initializeAdminSession() {
+            console.log('Initialize Admin Session clicked');
+            
+            const email = document.getElementById('adminEmail').value.trim();
+            const sessionName = document.getElementById('sessionName').value.trim();
+            const duration = parseInt(document.getElementById('accessDuration').value);
+
+            console.log('Form values:', { email, sessionName, duration });
+
+            // Clear any previous errors
+            const errorDiv = document.getElementById('adminInitError');
+            if (errorDiv) {
+                errorDiv.style.display = 'none';
+            }
+
+            // Validate inputs
+            if (!email) {
+                showInitError('Please enter your administrator email address.');
+                return;
+            }
+
+            if (!isValidEmail(email)) {
+                showInitError('Please enter a valid email address.');
+                return;
+            }
+
+            if (!sessionName) {
+                showInitError('Please enter a session name for your research study.');
+                return;
+            }
+
+            if (!duration || duration < 1 || duration > 168) {
+                showInitError('Please enter a valid access duration (1-168 hours).');
+                return;
+            }
+
+            try {
+                // Initialize platform state
+                platformState.isAdminLoggedIn = true;
+                platformState.adminEmail = email;
+                platformState.sessionName = sessionName;
+                platformState.accessDuration = duration;
+                platformState.sessionStartTime = new Date();
+
+                console.log('Platform state updated:', platformState);
+
+                // Load existing team data if available
+                const storedTeamData = localStorage.getItem('uecTeamData');
+                if (storedTeamData) {
+                    try {
+                        platformState.teamData = JSON.parse(storedTeamData);
+                        console.log('Loaded existing team data:', platformState.teamData.length, 'teams');
+                    } catch (e) {
+                        console.warn('Error loading stored team data:', e);
+                        platformState.teamData = [];
+                    }
+                }
+
+                // Store session data
+                localStorage.setItem('uecSessionData', JSON.stringify({
+                    adminEmail: platformState.adminEmail,
+                    sessionName: platformState.sessionName,
+                    accessDuration: platformState.accessDuration,
+                    sessionStartTime: platformState.sessionStartTime
+                }));
+
+                // Update UI elements
+                const adminEmailDisplay = document.getElementById('adminEmailDisplay');
+                const sessionExpiry = document.getElementById('sessionExpiry');
+                
+                if (adminEmailDisplay) {
+                    adminEmailDisplay.textContent = email;
+                }
+                
+                if (sessionExpiry) {
+                    const expiryTime = new Date(Date.now() + duration * 60 * 60 * 1000);
+                    sessionExpiry.textContent = expiryTime.toLocaleString();
+                }
+
+                // Update access code display
+                const currentAccessCode = document.getElementById('currentAccessCode');
+                if (currentAccessCode) {
+                    currentAccessCode.textContent = platformState.platformAccessCode;
+                }
+
+                // Show admin dashboard and hide auth section
+                const authSection = document.getElementById('authSection');
+                const adminDashboard = document.getElementById('adminDashboard');
+                
+                if (authSection && adminDashboard) {
+                    authSection.classList.add('hidden');
+                    adminDashboard.classList.add('active');
+                } else {
+                    console.error('Could not find authSection or adminDashboard elements');
+                    return;
+                }
+
+                // Initialize additional features if team data exists
+                if (platformState.teamData && platformState.teamData.length > 0) {
+                    displayTeamCodes();
+                    showTestAccessButton();
+                    updateSubmissionCounts();
+                }
+
+                console.log('Admin session initialized successfully');
+                showQuickNotification('✅ Admin session initialized successfully!', '#10b981');
+
+            } catch (error) {
+                console.error('Error initializing admin session:', error);
+                showInitError('An error occurred while initializing the session. Please try again.');
+            }
+        }
+
+        function showInitError(message) {
+            const errorDiv = document.getElementById('adminInitError');
+            if (errorDiv) {
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+            } else {
+                showError(message);
+            }
+        }
+
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        function authenticateParticipant() {
+            const teamCode = document.getElementById('teamCode').value.toUpperCase();
+            const memberName = document.getElementById('memberName').value;
+
+            if (!teamCode || !memberName) {
+                showError('Please fill in all required fields');
+                return;
+            }
+
+            // Load team data from localStorage if not in memory
+            if (!platformState.teamData || platformState.teamData.length === 0) {
+                const storedTeamData = localStorage.getItem('uecTeamData');
+                const storedSessionData = localStorage.getItem('uecSessionData');
+                
+                if (storedTeamData && storedSessionData) {
+                    platformState.teamData = JSON.parse(storedTeamData);
+                    const sessionData = JSON.parse(storedSessionData);
+                    platformState.adminEmail = sessionData.adminEmail;
+                    platformState.sessionName = sessionData.sessionName;
+                    platformState.accessDuration = sessionData.accessDuration;
+                    platformState.sessionStartTime = new Date(sessionData.sessionStartTime);
+                } else {
+                    showError('No active session found. Please contact the administrator.');
+                    return;
+                }
+            }
+
+            // Find team by code
+            const team = platformState.teamData.find(t => t.code === teamCode);
+            
+            if (!team) {
+                showError(`Invalid team code "${teamCode}". Please check your code and try again.`);
+                console.log('Available codes:', platformState.teamData.map(t => t.code));
+                return;
+            }
+
+            // Check if code is expired
+            const expiryTime = new Date(team.expiryTime);
+            if (new Date() > expiryTime) {
+                showError('Team code has expired. Please contact the administrator.');
+                return;
+            }
+
+            platformState.isParticipantLoggedIn = true;
+            platformState.currentTeam = team;
+
+            // Add participant to team
+            if (!team.participants.find(p => p.name === memberName)) {
+                team.participants.push({
+                    name: memberName,
+                    loginTime: new Date().toISOString()
+                });
+                // Update localStorage
+                localStorage.setItem('uecTeamData', JSON.stringify(platformState.teamData));
+            }
+
+            // Display secret agenda
+            displaySecretAgenda(team.groupLetter);
+
+            document.getElementById('authSection').classList.add('hidden');
+            document.getElementById('participantInterface').classList.add('active');
+            
+            startTimer(1);
+            console.log('Participant authenticated:', teamCode, memberName, 'Group:', team.groupLetter);
+        }
+
+        function showTestAccessButton() {
+            document.getElementById('testAccessBtn').style.display = 'inline-block';
+        }
+
+        function switchToParticipantTest() {
+            // Switch to participant tab while maintaining admin session
+            document.getElementById('adminDashboard').classList.remove('active');
+            document.getElementById('authSection').classList.remove('hidden');
+            
+            // Switch to participant tab
+            switchAuthTab('participant');
+            
+            // Add return to admin button
+            addReturnToAdminButton();
+            
+            // Clear participant form
+            document.getElementById('teamCode').value = '';
+            document.getElementById('memberName').value = '';
+        }
+
+        function addReturnToAdminButton() {
+            const existingBtn = document.getElementById('returnToAdminBtn');
+            if (existingBtn) return; // Already added
+            
+            const participantAuth = document.getElementById('participantAuth');
+            const returnBtn = document.createElement('button');
+            returnBtn.id = 'returnToAdminBtn';
+            returnBtn.className = 'btn';
+            returnBtn.style.cssText = 'background: linear-gradient(135deg, #6b7280, #4b5563); margin-top: 20px;';
+            returnBtn.textContent = '← Return to Admin Dashboard';
+            returnBtn.onclick = returnToAdminDashboard;
+            participantAuth.appendChild(returnBtn);
+        }
+
+        function returnToAdminDashboard() {
+            // Hide participant interface if active
+            document.getElementById('participantInterface').classList.remove('active');
+            document.getElementById('authSection').classList.add('hidden');
+            document.getElementById('adminDashboard').classList.add('active');
+            
+            // Reset participant state
+            platformState.isParticipantLoggedIn = false;
+            platformState.currentTeam = null;
+            
+            // Clear timer if running
+            if (platformState.timerInterval) {
+                clearInterval(platformState.timerInterval);
+                document.getElementById('timerWidget').classList.add('hidden');
+            }
+        }
+        function generateTeamCodes() {
+            const numberOfTeams = parseInt(document.getElementById('numberOfTeams').value);
+            const accessDuration = platformState.accessDuration;
+            const expiryTime = new Date(Date.now() + accessDuration * 60 * 60 * 1000);
+            
+            platformState.teamData = [];
+            const groupLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+            
+            for (let i = 0; i < numberOfTeams; i++) {
+                const code = generateRandomCode();
+                const team = {
+                    code: code,
+                    groupLetter: groupLetters[i],
+                    groupName: secretAgendas[groupLetters[i]].title,
+                    expiryTime: expiryTime,
+                    isActive: true,
+                    participants: [],
+                    submissions: []
+                };
+                platformState.teamData.push(team);
+            }
+
+            // Store team data in localStorage for persistence
+            localStorage.setItem('uecTeamData', JSON.stringify(platformState.teamData));
+            localStorage.setItem('uecSessionData', JSON.stringify({
+                adminEmail: platformState.adminEmail,
+                sessionName: platformState.sessionName,
+                accessDuration: platformState.accessDuration,
+                sessionStartTime: platformState.sessionStartTime
+            }));
+
+            displayTeamCodes();
+            
+            // Show test access button
+            showTestAccessButton();
+            
+            // Update submission counts
+            updateSubmissionCounts();
+        }
+
+        function generateRandomCode() {
+            let code;
+            let attempts = 0;
+            do {
+                code = Math.random().toString(36).substr(2, 6).toUpperCase();
+                attempts++;
+            } while (platformState.teamData.some(team => team.code === code) && attempts < 100);
+            
+            return code;
+        }
+
+        function displayTeamCodes() {
+            const codesList = document.getElementById('codesList');
+            codesList.innerHTML = '';
+
+            if (platformState.teamData.length === 0) {
+                codesList.innerHTML = '<p style="color: #6b7280; text-align: center; padding: 20px;">No team codes generated yet.</p>';
+                return;
+            }
+
+            platformState.teamData.forEach(team => {
+                const codeItem = document.createElement('div');
+                codeItem.className = 'team-code-item';
+                
+                const isActive = new Date() < new Date(team.expiryTime);
+                const statusClass = isActive ? 'status-active' : 'status-expired';
+                const statusText = isActive ? 'Active' : 'Expired';
+                const participantCount = team.participants ? team.participants.length : 0;
+
+                codeItem.innerHTML = `
+                    <div class="code-info">
+                        <div class="team-name">Group ${team.groupLetter}: ${team.groupName}</div>
+                        <div class="team-code">Code: <strong>${team.code}</strong></div>
+                        <div style="font-size: 0.8rem; color: #6b7280;">Participants: ${participantCount} | Expires: ${new Date(team.expiryTime).toLocaleString()}</div>
+                    </div>
+                    <div>
+                        <div class="status-badge ${statusClass}">${statusText}</div>
+                        <button class="btn" style="padding: 8px 15px; font-size: 0.8rem; margin-top: 5px;" onclick="testTeamCode('${team.code}', '${team.groupLetter}')">Quick Test</button>
+                    </div>
+                `;
+                codesList.appendChild(codeItem);
+            });
+
+            // Add debug info
+            const debugInfo = document.createElement('div');
+            debugInfo.style.cssText = 'background: #f3f4f6; padding: 15px; border-radius: 8px; margin-top: 20px; font-size: 0.9rem;';
+            debugInfo.innerHTML = `
+                <strong>Debug Info:</strong><br>
+                Total Teams: ${platformState.teamData.length}<br>
+                Admin Email: ${platformState.adminEmail}<br>
+                Session Active: ${platformState.isAdminLoggedIn ? 'Yes' : 'No'}<br>
+                Data Stored: ${localStorage.getItem('uecTeamData') ? 'Yes' : 'No'}
+            `;
+            codesList.appendChild(debugInfo);
+        }
+
+        function testTeamCode(code, groupLetter) {
+            // Pre-fill the participant form and switch to it
+            document.getElementById('teamCode').value = code;
+            document.getElementById('memberName').value = `Test-${groupLetter}`;
+            switchToParticipantTest();
+            
+            // Highlight the pre-filled form
+            document.getElementById('teamCode').style.background = '#fef3c7';
+            document.getElementById('memberName').style.background = '#fef3c7';
+            
+            alert(`Testing code ${code} for Group ${groupLetter}. Form is pre-filled - click "Access Game Platform" to test.`);
+        }
+
+        function downloadCodes() {
+            if (!platformState.teamData || platformState.teamData.length === 0) {
+                showError('Please generate team codes first.');
+                return;
+            }
+            
+            // Create downloadable content
+            let content = `UEC Validation Study - Team Access Codes\n`;
+            content += `${'='.repeat(50)}\n`;
+            content += `Session: ${platformState.sessionName}\n`;
+            content += `Administrator: ${platformState.adminEmail}\n`;
+            content += `Generated: ${new Date().toLocaleString()}\n`;
+            content += `Expires: ${new Date(Date.now() + platformState.accessDuration * 60 * 60 * 1000).toLocaleString()}\n\n`;
+            
+            content += `TEAM ACCESS CODES:\n`;
+            content += `${'-'.repeat(30)}\n`;
+            platformState.teamData.forEach(team => {
+                content += `Group ${team.groupLetter}: ${team.code}\n`;
+                content += `  Role: ${team.groupName}\n`;
+                content += `  Objective: ${secretAgendas[team.groupLetter].objective}\n`;
+                content += `  Success Metric: ${secretAgendas[team.groupLetter].successMetric}\n\n`;
+            });
+            
+            content += `\nPLATFORM ACCESS:\n`;
+            content += `${'-'.repeat(20)}\n`;
+            content += `Admin Platform: ${window.location.origin}${window.location.pathname}\n`;
+            content += `Admin Access Code: ${platformState.platformAccessCode}\n\n`;
+            
+            if (platformState.participantLink) {
+                content += `Participant Link: ${platformState.participantLink}\n\n`;
+            }
+            
+            content += `INSTRUCTIONS:\n`;
+            content += `${'-'.repeat(15)}\n`;
+            content += `1. Share team codes with respective groups\n`;
+            content += `2. Each team has a secret objective - do not reveal to others\n`;
+            content += `3. Teams use the participant link to access the platform\n`;
+            content += `4. Study duration: approximately 2 hours\n`;
+            content += `5. All submissions will be sent to: ${platformState.adminEmail}\n`;
+
+            // Download file
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `UEC_Team_Codes_${new Date().toISOString().split('T')[0]}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            // Also show email preview for the codes
+            const codesEmailContent = `
+Subject: UEC Study - Team Access Codes & Instructions
+
+TEAM ACCESS CODES FOR UEC VALIDATION STUDY
+
+Session Details:
+- Study Name: ${platformState.sessionName}
+- Administrator: ${platformState.adminEmail}
+- Date: ${new Date().toLocaleString()}
+- Duration: ~2 hours
+- Expires: ${new Date(Date.now() + platformState.accessDuration * 60 * 60 * 1000).toLocaleString()}
+
+TEAM ASSIGNMENTS:
+${platformState.teamData.map(team => `
+Group ${team.groupLetter}: ${team.code}
+Role: ${team.groupName}
+Secret Objective: ${secretAgendas[team.groupLetter].objective}
+`).join('')}
+
+${platformState.participantLink ? `
+PARTICIPANT ACCESS:
+${platformState.participantLink}
+` : 'Use "Create Participant Link" to generate access URL.'}
+
+ADMIN ACCESS:
+Platform: ${window.location.origin}${window.location.pathname}
+Access Code: ${platformState.platformAccessCode}
+
+INSTRUCTIONS FOR TEAMS:
+1. Access the participant link
+2. Enter your assigned team code
+3. Do NOT share your secret objective with other teams
+4. Complete all 4 rounds of the study
+5. Fill out all evaluation forms completely
+
+All responses will be submitted automatically to the research administrator.
+
+Best regards,
+UEC Research Team
+            `.trim();
+            
+            showEmailPreview('Team Access Codes & Instructions', codesEmailContent, platformState.adminEmail);
+            
+            showQuickNotification('✅ Team codes downloaded and email ready!', '#10b981');
+        }
+
+        // Participant Functions
+        function displaySecretAgenda(groupLetter) {
+            const agenda = secretAgendas[groupLetter];
+            document.getElementById('agendaTitle').textContent = `Group ${groupLetter}: ${agenda.title}`;
+            document.getElementById('agendaObjective').innerHTML = `<strong>Secret Objective:</strong> ${agenda.objective}`;
+            document.getElementById('agendaDetails').innerHTML = `
+                <p><strong>Details:</strong> ${agenda.details}</p>
+                <p><strong>Success Metric:</strong> ${agenda.successMetric}</p>
+            `;
+        }
+
+        function selectUrbanArea(element) {
+            const area = element.dataset.area;
+            const maxSelections = 3;
+
+            if (element.classList.contains('selected')) {
+                // Deselect
+                element.classList.remove('selected');
+                platformState.selectedAreas = platformState.selectedAreas.filter(a => a !== area);
+            } else {
+                // Select
+                if (platformState.selectedAreas.length < maxSelections) {
+                    element.classList.add('selected');
+                    platformState.selectedAreas.push(area);
+                } else {
+                    showError(`You can select maximum ${maxSelections} areas.`);
+                    return;
+                }
+            }
+
+            updateSelectedAreasDisplay();
+            updateSubmitButton();
+        }
+
+        function updateSelectedAreasDisplay() {
+            const container = document.getElementById('selectedAreasStrategies');
+            container.innerHTML = '';
+
+            if (platformState.selectedAreas.length === 0) {
+                container.innerHTML = '<p style="color: #6b7280; text-align: center; margin: 20px 0;">Select urban areas to define strategies</p>';
+                return;
+            }
+
+            platformState.selectedAreas.forEach(area => {
+                const areaDiv = document.createElement('div');
+                areaDiv.style.cssText = 'background: #f8fafc; padding: 20px; border-radius: 12px; margin: 15px 0; border: 2px solid #e5e7eb;';
+                areaDiv.innerHTML = `
+                    <h4 style="color: #1f2937; margin-bottom: 15px;">${formatAreaName(area)}</h4>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Primary Strategy:</label>
+                        <textarea id="strategy1_${area}" rows="2" placeholder="Describe your primary strategy for this area..." style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px;"></textarea>
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Secondary Strategy:</label>
+                        <textarea id="strategy2_${area}" rows="2" placeholder="Describe your secondary strategy for this area..." style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px;"></textarea>
+                    </div>
+                `;
+                container.appendChild(areaDiv);
+            });
+        }
+
+        function formatAreaName(area) {
+            return area.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        }
+
+        function updateSubmitButton() {
+            const submitBtn = document.getElementById('submitRound1Btn');
+            submitBtn.disabled = platformState.selectedAreas.length === 0;
+        }
+
+        // Round Management
+        function startTimer(round) {
+            const duration = platformState.roundTimers[round - 1] * 60; // Convert to seconds
+            let timeLeft = duration;
+            
+            document.getElementById('timerWidget').classList.remove('hidden');
+            
+            if (platformState.timerInterval) {
+                clearInterval(platformState.timerInterval);
+            }
+            
+            platformState.timerInterval = setInterval(() => {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                document.getElementById('timerText').textContent = 
+                    `Round ${round}: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(platformState.timerInterval);
+                    document.getElementById('timerText').textContent = 'Time Up!';
+                    alert(`Round ${round} time is up!`);
+                }
+                timeLeft--;
+            }, 1000);
+        }
+
+        function updateProgress(round) {
+            const progress = (round - 1) * 25;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+            
+            // Update step indicators
+            document.querySelectorAll('.round-step').forEach((step, index) => {
+                step.classList.remove('active', 'completed');
+                if (index + 1 < round) {
+                    step.classList.add('completed');
+                } else if (index + 1 === round) {
+                    step.classList.add('active');
+                }
+            });
+        }
+
+        function advanceToRound(round) {
+            // Hide all round content
+            document.querySelectorAll('#gameContent > div').forEach(div => {
+                div.classList.add('hidden');
+            });
+            
+            // Show current round content
+            document.getElementById(`round${round}Content`).classList.remove('hidden');
+            
+            platformState.currentRound = round;
+            updateProgress(round);
+            
+            if (round <= 4) {
+                startTimer(round);
+            }
+        }
+
+        // Submission Functions
+        function submitRound1() {
+            const strategies = {};
+            
+            platformState.selectedAreas.forEach(area => {
+                const strategy1 = document.getElementById(`strategy1_${area}`).value;
+                const strategy2 = document.getElementById(`strategy2_${area}`).value;
+                
+                if (!strategy1.trim() || !strategy2.trim()) {
+                    showError(`Please fill in both strategies for ${formatAreaName(area)}`);
+                    return;
+                }
+                
+                strategies[area] = {
+                    primary: strategy1,
+                    secondary: strategy2
+                };
+            });
+
+            if (Object.keys(strategies).length !== platformState.selectedAreas.length) {
+                return; // Error already shown
+            }
+
+            const submissionData = {
+                round: 1,
+                teamCode: platformState.currentTeam.code,
+                groupLetter: platformState.currentTeam.groupLetter,
+                timestamp: new Date().toISOString(),
+                selectedAreas: platformState.selectedAreas,
+                strategies: strategies
+            };
+
+            submitToEmail(submissionData, 'Round 1 Strategy Selection');
+            showSubmissionSuccess('Round 1 submitted successfully!');
+            
+            // Reset selected areas for round 2
+            platformState.selectedAreas = [];
+            advanceToRound(2);
+        }
+
+        function submitRound2() {
+            const formData = {
+                round: 2,
+                teamCode: platformState.currentTeam.code,
+                groupLetter: platformState.currentTeam.groupLetter,
+                timestamp: new Date().toISOString(),
+                analysis: {
+                    uecScore: document.getElementById('r2_uec_score').value,
+                    satisfaction: document.getElementById('r2_satisfaction').value,
+                    goodStrategies: document.getElementById('r2_good_strategies').value,
+                    badStrategies: document.getElementById('r2_bad_strategies').value
+                },
+                newStrategies: collectRound2Strategies()
+            };
+
+            submitToEmail(formData, 'Round 2 Analysis & Planning');
+            showSubmissionSuccess('Round 2 analysis submitted successfully!');
+            advanceToRound(3);
+        }
+
+        function submitRound3() {
+            const formData = {
+                round: 3,
+                teamCode: platformState.currentTeam.code,
+                groupLetter: platformState.currentTeam.groupLetter,
+                timestamp: new Date().toISOString(),
+                representative: document.getElementById('r3_representative').value,
+                priorities: document.getElementById('r3_priorities').value,
+                assignedStrategies: document.getElementById('r3_assigned_strategies').value,
+                councilAssessment: document.getElementById('r3_council_assessment').value
+            };
+
+            submitToEmail(formData, 'Round 3 Council Formation');
+            showSubmissionSuccess('Round 3 council phase submitted successfully!');
+            advanceToRound(4);
+        }
+
+        function submitFinalAssessment() {
+            const formData = {
+                round: 4,
+                teamCode: platformState.currentTeam.code,
+                groupLetter: platformState.currentTeam.groupLetter,
+                timestamp: new Date().toISOString(),
+                finalAssessment: {
+                    finalUec: document.getElementById('r4_final_uec').value,
+                    contribution: document.getElementById('r4_contribution').value,
+                    appAccuracy: document.getElementById('r4_app_accuracy').value
+                },
+                uecConcepts: {
+                    definition: document.getElementById('r4_uec_definition').value,
+                    factors: document.getElementById('r4_uec_factors').value,
+                    relationships: document.getElementById('r4_relationships').value,
+                    rationale: document.getElementById('r4_strategy_rationale').value
+                }
+            };
+
+            submitToEmail(formData, 'Final Assessment & UEC Concepts');
+            
+            // Show completion message
+            document.getElementById('round4Content').classList.add('hidden');
+            document.getElementById('completionMessage').classList.remove('hidden');
+            document.getElementById('timerWidget').classList.add('hidden');
+            
+            updateProgress(5); // Show 100% completion
+        }
+
+        function submitToEmail(data, subject) {
+            // Enhanced email submission with visible email preview
+            const formattedData = formatSubmissionForEmail(data, subject);
+            
+            const emailContent = `
+Subject: UEC Study - ${subject} - Group ${data.groupLetter}
+
+UEC VALIDATION STUDY SUBMISSION
+
+Team Information:
+- Group: ${data.groupLetter} (${secretAgendas[data.groupLetter]?.title || 'Unknown'})
+- Team Code: ${data.teamCode}
+- Round: ${data.round}
+- Submission Time: ${new Date(data.timestamp).toLocaleString()}
+- Session: ${platformState.sessionName}
+
+${formattedData}
+
+Raw Data (JSON format):
+${JSON.stringify(data, null, 2)}
+
+---
+This is an automated submission from the UEC Validation Platform.
+Administrator: ${platformState.adminEmail}
+            `.trim();
+            
+            // Show email preview to admin (if they're testing) or store for later review
+            if (platformState.isAdminLoggedIn && platformState.currentTeam) {
+                // Admin is testing - show email preview
+                showEmailPreview(`${subject} - Group ${data.groupLetter}`, emailContent, platformState.adminEmail);
+            } else {
+                // Real participant submission - store and show confirmation
+                storeSubmissionForEmail(emailContent, data);
+                showSubmissionConfirmation(subject, data.groupLetter);
+            }
+            
+            // Store in localStorage with enhanced structure
+            const submissions = JSON.parse(localStorage.getItem('uecSubmissions') || '[]');
+            submissions.push({
+                to: platformState.adminEmail,
+                subject: `UEC Study - ${subject} - Group ${data.groupLetter}`,
+                body: JSON.stringify(data, null, 2),
+                emailContent: emailContent,
+                timestamp: new Date().toISOString(),
+                sessionName: platformState.sessionName,
+                participantData: {
+                    groupLetter: data.groupLetter,
+                    teamCode: data.teamCode,
+                    round: data.round,
+                    summary: generateSubmissionSummary(data)
+                }
+            });
+            localStorage.setItem('uecSubmissions', JSON.stringify(submissions));
+            
+            // Update team submission count
+            if (platformState.currentTeam) {
+                if (!platformState.currentTeam.submissions) {
+                    platformState.currentTeam.submissions = [];
+                }
+                platformState.currentTeam.submissions.push({
+                    round: data.round,
+                    timestamp: data.timestamp,
+                    subject: subject
+                });
+                
+                // Update stored team data
+                localStorage.setItem('uecTeamData', JSON.stringify(platformState.teamData));
+            }
+        }
+
+        function formatSubmissionForEmail(data, subject) {
+            let formatted = '';
+            
+            switch (data.round) {
+                case 1:
+                    formatted = `
+ROUND 1 - STRATEGY SELECTION
+
+Selected Urban Areas (${data.selectedAreas?.length || 0}/3):
+${data.selectedAreas?.map(area => `- ${formatAreaName(area)}`).join('\n') || 'None selected'}
+
+Strategies by Area:
+${data.selectedAreas?.map(area => {
+    const strategy = data.strategies?.[area];
+    return `
+${formatAreaName(area)}:
+  Primary Strategy: ${strategy?.primary || 'Not provided'}
+  Secondary Strategy: ${strategy?.secondary || 'Not provided'}`;
+}).join('\n') || 'No strategies provided'}
+                    `;
+                    break;
+                    
+                case 2:
+                    formatted = `
+ROUND 2 - ANALYSIS & PLANNING
+
+Performance Analysis:
+- UEC Score Achieved: ${data.analysis?.uecScore || 'Not provided'}
+- Satisfaction Level: ${data.analysis?.satisfaction || 'Not provided'}/10
+- Effective Strategies: ${data.analysis?.goodStrategies || 'Not provided'}
+- Ineffective Strategies: ${data.analysis?.badStrategies || 'Not provided'}
+
+New Strategy Selection:
+${data.newStrategies ? Object.entries(data.newStrategies).map(([area, strategy]) => `
+${formatAreaName(area)}:
+  Primary: ${strategy.primary}
+  Secondary: ${strategy.secondary}`).join('\n') : 'No new strategies provided'}
+                    `;
+                    break;
+                    
+                case 3:
+                    formatted = `
+ROUND 3 - COUNCIL FORMATION
+
+Council Representative: ${data.representative || 'Not provided'}
+Negotiation Priorities: ${data.priorities || 'Not provided'}
+Council Assigned Strategies: ${data.assignedStrategies || 'Not provided'}
+Council Assessment: ${data.councilAssessment || 'Not provided'}
+                    `;
+                    break;
+                    
+                case 4:
+                    formatted = `
+ROUND 4 - FINAL ASSESSMENT
+
+Performance Metrics:
+- Final City UEC Score: ${data.finalAssessment?.finalUec || 'Not provided'}
+- Team Contribution Rating: ${data.finalAssessment?.contribution || 'Not provided'}/10
+- App Accuracy Rating: ${data.finalAssessment?.appAccuracy || 'Not provided'}/10
+
+UEC CONCEPT REVELATION:
+Definition of Environmental Comfort:
+${data.uecConcepts?.definition || 'Not provided'}
+
+Primary UEC Factors:
+${data.uecConcepts?.factors || 'Not provided'}
+
+Key Relationships:
+${data.uecConcepts?.relationships || 'Not provided'}
+
+Strategy Selection Rationale:
+${data.uecConcepts?.rationale || 'Not provided'}
+                    `;
+                    break;
+            }
+            
+            return formatted;
+        }
+
+        function storeSubmissionForEmail(emailContent, data) {
+            // Store pending emails for admin review
+            const pendingEmails = JSON.parse(localStorage.getItem('pendingEmails') || '[]');
+            pendingEmails.push({
+                content: emailContent,
+                groupLetter: data.groupLetter,
+                round: data.round,
+                timestamp: new Date().toISOString(),
+                sent: false
+            });
+            localStorage.setItem('pendingEmails', JSON.stringify(pendingEmails));
+        }
+
+        function showSubmissionConfirmation(subject, groupLetter) {
+            const confirmation = document.createElement('div');
+            confirmation.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #10b981, #059669);
+                color: white;
+                padding: 20px;
+                border-radius: 12px;
+                box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+                z-index: 9999;
+                max-width: 400px;
+            `;
+            
+            confirmation.innerHTML = `
+                <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                    <span style="font-size: 1.5rem; margin-right: 10px;">✅</span>
+                    <strong>Submission Successful!</strong>
+                </div>
+                <div style="margin-bottom: 10px;">
+                    ${subject} for Group ${groupLetter} has been submitted to the research administrator.
+                </div>
+                <div style="font-size: 0.9rem; opacity: 0.9;">
+                    Administrator: ${platformState.adminEmail}
+                </div>
+                <button onclick="this.parentElement.remove()" style="position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.2); border: none; color: white; border-radius: 50%; width: 25px; height: 25px; cursor: pointer;">×</button>
+            `;
+            
+            document.body.appendChild(confirmation);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (confirmation.parentNode) {
+                    confirmation.parentNode.removeChild(confirmation);
+                }
+            }, 5000);
+        }
+
+        function generateSubmissionSummary(data) {
+            let summary = `Round ${data.round} - `;
+            
+            switch (data.round) {
+                case 1:
+                    summary += `Selected ${data.selectedAreas?.length || 0} areas: ${data.selectedAreas?.join(', ') || 'None'}`;
+                    break;
+                case 2:
+                    summary += `UEC Score: ${data.analysis?.uecScore || 'N/A'}, Satisfaction: ${data.analysis?.satisfaction || 'N/A'}/10`;
+                    break;
+                case 3:
+                    summary += `Representative: ${data.representative || 'N/A'}`;
+                    break;
+                case 4:
+                    summary += `Final UEC: ${data.finalAssessment?.finalUec || 'N/A'}, Contribution: ${data.finalAssessment?.contribution || 'N/A'}/10`;
+                    break;
+            }
+            
+            return summary;
+        }
+
+        // Utility Functions
+        function updateRatingDisplay(slider, displayId) {
+            document.getElementById(displayId).textContent = slider.value;
+        }
+
+        function showError(message) {
+            // Create and show error message
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = message;
+            
+            // Insert at top of current content
+            const container = document.querySelector('.auth-section') || document.querySelector('.participant-interface');
+            container.insertBefore(errorDiv, container.firstChild);
+            
+            // Remove after 5 seconds
+            setTimeout(() => {
+                if (errorDiv.parentNode) {
+                    errorDiv.parentNode.removeChild(errorDiv);
+                }
+            }, 5000);
+        }
+
+        function showSubmissionSuccess(message) {
+            // Create and show success message
+            const successDiv = document.createElement('div');
+            successDiv.className = 'submission-success';
+            successDiv.innerHTML = `<p>${message}</p>`;
+            
+            // Insert at top of current content
+            const container = document.querySelector('.participant-interface');
+            container.insertBefore(successDiv, container.firstChild);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                if (successDiv.parentNode) {
+                    successDiv.parentNode.removeChild(successDiv);
+                }
+            }, 3000);
+        }
+
+        function collectRound2Strategies() {
+            // Collect strategies from round 2 area selection
+            const strategies = {};
+            platformState.selectedAreas.forEach(area => {
+                // This would be implemented similar to round 1
+                strategies[area] = {
+                    primary: `Round 2 strategy for ${area}`,
+                    secondary: `Secondary round 2 strategy for ${area}`
+                };
+            });
+            return strategies;
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('UEC Validation Platform Loaded');
+            
+            // Add click listeners to urban area cards
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('urban-area-card')) {
+                    selectUrbanArea(e.target);
+                }
+            });
+        });
+
+        function exportIndividualTeam() {
+            const teamCode = prompt('Enter team code to export:');
+            if (!teamCode) return;
+            
+            const team = platformState.teamData.find(t => t.code.toUpperCase() === teamCode.toUpperCase());
+            if (!team) {
+                showError('Team code not found.');
+                return;
+            }
+            
+            const teamSubmissions = JSON.parse(localStorage.getItem('uecSubmissions') || '[]')
+                .filter(sub => sub.body.includes(team.code));
+            
+            const exportData = compileTeamData(teamSubmissions, team);
+            
+            generateExcelFile(exportData, team.groupLetter);
+            generateWordDocument(exportData, team.groupLetter);
+            sendExportEmail(exportData, true, true, team.groupLetter);
+        }
+        function viewLiveData() {
+            alert('Live data monitoring would show real-time team progress and submissions.');
+        }
+
+        function exportResults() {
+            const submissions = JSON.parse(localStorage.getItem('uecSubmissions') || '[]');
+            const blob = new Blob([JSON.stringify(submissions, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `UEC_Study_Results_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function extendSession() {
+            const newDuration = prompt('Enter new session duration in hours:', platformState.accessDuration);
+            if (newDuration && !isNaN(newDuration)) {
+                platformState.accessDuration = parseInt(newDuration);
+                const expiryTime = new Date(Date.now() + platformState.accessDuration * 60 * 60 * 1000);
+                document.getElementById('sessionExpiry').textContent = expiryTime.toLocaleString();
+                alert('Session duration extended successfully!');
+            }
+        }
+
+        function endSession() {
+            if (confirm('Are you sure you want to end the session? This will disable all team access codes.')) {
+                platformState.teamData.forEach(team => {
+                    team.expiryTime = new Date(); // Set to expired
+                });
+                displayTeamCodes();
+                alert('Session ended. All team codes have been disabled.');
+            }
+        }
+    </script>
+</body>
+</html>
