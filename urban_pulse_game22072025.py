@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Jul 22 14:48:36 2025
+Created on Tue Jul 22 15:29:47 2025
 
 @author: sinaa
 """
@@ -8,8 +8,8 @@ Created on Tue Jul 22 14:48:36 2025
 #!/usr/bin/env python3
 """
 Urban Pulse - Complete Multi-Zone Spatial Analysis System
-Web version with ALL original features preserved
-Optimized for workshop deployment
+Web version with ALL original features preserved + Custom Strategy Creation
+Fixed version for workshop deployment
 """
 
 import streamlit as st
@@ -65,6 +65,13 @@ st.markdown("""
     .priority-high { border-left: 5px solid #FFA500; }
     .priority-medium { border-left: 5px solid #32CD32; }
     .priority-low { border-left: 5px solid #808080; }
+    .custom-strategy {
+        background-color: #E8F4FD;
+        border: 2px dashed #2E86AB;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 0.5rem 0;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -296,6 +303,44 @@ STRATEGIES = [
     }
 ]
 
+# Strategy Keywords for Custom Strategy Creation
+STRATEGY_KEYWORDS = {
+    "Human-Social": [
+        "community", "social", "engagement", "participation", "behavioral", "cultural", "education", 
+        "awareness", "involvement", "activation", "empowerment", "local", "neighborhood", "residents",
+        "citizens", "public", "collaborative", "inclusive", "accessible", "democratic"
+    ],
+    "Spatial": [
+        "infrastructure", "development", "planning", "zoning", "density", "layout", "design", 
+        "construction", "building", "space", "land use", "urban form", "architecture", "transport",
+        "connectivity", "accessibility", "mixed use", "compact", "walkable", "transit-oriented"
+    ],
+    "Air-Soundscape": [
+        "air quality", "pollution", "emissions", "noise", "sound", "acoustic", "clean air", 
+        "ventilation", "breathing", "atmosphere", "environment", "health", "toxic", "fresh",
+        "quiet", "peaceful", "soundproofing", "buffer", "monitoring", "control"
+    ],
+    "Thermal": [
+        "temperature", "heat", "cooling", "warm", "climate", "comfort", "energy", "thermal",
+        "shading", "insulation", "ventilation", "passive", "solar", "green roof", "trees",
+        "microclimate", "urban heat", "cool", "adaptation", "resilience"
+    ]
+}
+
+# Action suggestions based on keywords
+ACTION_SUGGESTIONS = {
+    "community": ["Community Forums", "Neighborhood Assemblies", "Local Councils", "Resident Meetings"],
+    "engagement": ["Participatory Workshops", "Public Consultations", "Stakeholder Meetings", "Town Halls"],
+    "green": ["Tree Planting", "Green Walls", "Community Gardens", "Parks Development"],
+    "mobility": ["Bike Lanes", "Walking Paths", "Public Transport", "Car-Free Zones"],
+    "air": ["Emission Controls", "Air Monitoring", "Clean Zones", "Pollution Reduction"],
+    "thermal": ["Cooling Centers", "Shading Structures", "Cool Roofs", "Thermal Comfort"],
+    "noise": ["Sound Barriers", "Quiet Zones", "Noise Monitoring", "Acoustic Design"],
+    "infrastructure": ["Road Improvements", "Utility Upgrades", "Digital Infrastructure", "Facility Development"],
+    "social": ["Social Programs", "Cultural Events", "Youth Activities", "Senior Services"],
+    "technology": ["Smart Systems", "Digital Platforms", "Monitoring Networks", "Data Analytics"]
+}
+
 ZONE_STRATEGY_MULTIPLIERS = {
     "Human-Social": {
         "city_center": 1.4, "commercial_district": 0.9, "rich_residential": 0.8, "middle_class": 1.2,
@@ -406,6 +451,19 @@ def get_uec_interpretation(score):
         if min_val <= score < max_val:
             return info
     return UEC_SCALE["ranges"][(7.0, 10.0)]
+
+# Initialize session state
+def init_session_state():
+    if 'game_manager' not in st.session_state:
+        st.session_state.game_manager = MultiZoneGameManager()
+    if 'team_name' not in st.session_state:
+        st.session_state.team_name = ""
+    if 'game_name' not in st.session_state:
+        st.session_state.game_name = ""
+    if 'current_round' not in st.session_state:
+        st.session_state.current_round = 1
+    if 'custom_strategies' not in st.session_state:
+        st.session_state.custom_strategies = {}
 
 # COMPLETE CALCULATION ENGINE
 class SpatialEffectsCalculator:
@@ -523,10 +581,16 @@ class SpatialEffectsCalculator:
         subsystems = set()
         
         for strategy_name in strategy_names:
+            # Check predefined strategies
             for strat_data in STRATEGIES:
                 if strat_data["Strategy"] == strategy_name:
                     subsystems.update(strat_data["Subsystems"])
                     break
+            else:
+                # Check custom strategies
+                if strategy_name in st.session_state.custom_strategies:
+                    custom_strategy = st.session_state.custom_strategies[strategy_name]
+                    subsystems.update(custom_strategy.get("Subsystems", ["Human-Social"]))
         
         if not subsystems:
             subsystems.add("Human-Social")
@@ -702,17 +766,6 @@ class MultiZoneGameManager:
         
         return self.spatial_calculator.calculate_multi_zone_effects(zone_actions_dict, self.current_round)
 
-# Initialize session state
-def init_session_state():
-    if 'game_manager' not in st.session_state:
-        st.session_state.game_manager = MultiZoneGameManager()
-    if 'team_name' not in st.session_state:
-        st.session_state.team_name = ""
-    if 'game_name' not in st.session_state:
-        st.session_state.game_name = ""
-    if 'current_round' not in st.session_state:
-        st.session_state.current_round = 1
-
 def calculate_normalized_uec_score(effects):
     """Calculate normalized UEC score (0-100 scale)"""
     total_impact = effects.get("total_city_impact", {})
@@ -760,6 +813,70 @@ def get_performance_level(uec_score):
     else:
         return {"level": "🌱 BEGINNER", "color": "#FF4500", "message": "Focus on behavioral strategies!"}
 
+def analyze_keywords_for_subsystem(text):
+    """Analyze text keywords to determine subsystem focus"""
+    text_lower = text.lower()
+    subsystem_scores = {"Human-Social": 0, "Spatial": 0, "Air-Soundscape": 0, "Thermal": 0}
+    
+    for subsystem, keywords in STRATEGY_KEYWORDS.items():
+        for keyword in keywords:
+            if keyword in text_lower:
+                subsystem_scores[subsystem] += 1
+    
+    # Determine primary subsystem(s)
+    max_score = max(subsystem_scores.values())
+    if max_score > 0:
+        primary_subsystems = [sub for sub, score in subsystem_scores.items() if score == max_score]
+        return primary_subsystems
+    else:
+        return ["Human-Social"]  # Default to behavioral
+
+def suggest_actions_from_keywords(text):
+    """Suggest actions based on keywords in text"""
+    text_lower = text.lower()
+    suggested_actions = set()
+    
+    for keyword, actions in ACTION_SUGGESTIONS.items():
+        if keyword in text_lower:
+            suggested_actions.update(actions[:2])  # Add top 2 actions per keyword
+    
+    return list(suggested_actions)[:6]  # Return max 6 suggestions
+
+def create_custom_strategy(strategy_name, description, zone_id):
+    """Create a custom strategy based on user input"""
+    # Analyze keywords to determine subsystems
+    subsystems = analyze_keywords_for_subsystem(description)
+    
+    # Suggest actions
+    suggested_actions = suggest_actions_from_keywords(description)
+    
+    # Determine loop impact based on subsystems
+    if len(subsystems) == 1 and subsystems[0] == "Human-Social":
+        loop_impact = "System Driver"
+        evidence_base = "Behavioral Primacy - Custom strategy focusing on human-centered interventions"
+    elif len(subsystems) == 1:
+        loop_impact = "Subsystem Specialist"
+        evidence_base = f"Specialized {subsystems[0]} intervention strategy"
+    else:
+        loop_impact = "Cross-Subsystem Bridge"
+        evidence_base = "Multi-subsystem integration strategy"
+    
+    custom_strategy = {
+        "Strategy": strategy_name,
+        "Description": description,
+        "Actions": suggested_actions,
+        "Subsystems": subsystems,
+        "Loop_Impact": loop_impact,
+        "Evidence_Base": evidence_base,
+        "Created_For_Zone": CITY_ZONES[zone_id]["name"],
+        "Custom": True
+    }
+    
+    # Store in session state
+    st.session_state.custom_strategies[strategy_name] = custom_strategy
+    
+    return custom_strategy
+
 # MAIN APPLICATION
 def main():
     init_session_state()
@@ -773,6 +890,7 @@ def main():
         "📖 City Introduction", 
         "🗺️ Interactive City Map",
         "⚙️ Zone Configuration",
+        "✨ Custom Strategy Creator",
         "📊 Game Results Dashboard",
         "🌊 Spillover Analysis",
         "🔬 Scientific Loop Analysis",
@@ -785,6 +903,7 @@ def main():
         st.sidebar.success(f"**Team:** {st.session_state.team_name}")
         st.sidebar.info(f"**Round:** {st.session_state.current_round}")
         st.sidebar.info(f"**Zones:** {len(st.session_state.game_manager.selected_zones)}")
+        st.sidebar.info(f"**Custom Strategies:** {len(st.session_state.custom_strategies)}")
     
     # Route to appropriate page
     if page == "🎯 Team Setup":
@@ -795,6 +914,8 @@ def main():
         city_map_page()
     elif page == "⚙️ Zone Configuration":
         zone_configuration_page()
+    elif page == "✨ Custom Strategy Creator":
+        custom_strategy_creator_page()
     elif page == "📊 Game Results Dashboard":
         results_dashboard_page()
     elif page == "🌊 Spillover Analysis":
@@ -861,6 +982,7 @@ def team_setup_page():
             st.session_state.game_manager = MultiZoneGameManager()
             st.session_state.team_name = ""
             st.session_state.game_name = ""
+            st.session_state.custom_strategies = {}
             st.rerun()
 
 def city_introduction_page():
@@ -972,8 +1094,9 @@ def city_introduction_page():
     st.markdown("""
     1. 🗺️ **Go to City Map** - Select zones for intervention
     2. ⚙️ **Configure Strategies** - Choose evidence-based interventions
-    3. 📊 **View Results** - See your UEC score and city transformation
-    4. 🔬 **Analyze Science** - Understand the feedback loops you activated
+    3. ✨ **Create Custom Strategies** - Design your own interventions based on keywords
+    4. 📊 **View Results** - See your UEC score and city transformation
+    5. 🔬 **Analyze Science** - Understand the feedback loops you activated
     
     Remember: You're not just playing a game - you're applying cutting-edge urban science!
     """)
@@ -1209,9 +1332,16 @@ def configure_zone_detailed(zone_id):
         
         current_strategies = zone_data.get('strategies', [])
         
+        # Combine predefined and custom strategies
+        all_strategies = STRATEGIES.copy()
+        
+        # Add custom strategies
+        for custom_name, custom_strategy in st.session_state.custom_strategies.items():
+            all_strategies.append(custom_strategy)
+        
         # Display strategies with effectiveness indicators
         strategy_options = []
-        for strategy in STRATEGIES:
+        for strategy in all_strategies:
             # Calculate effectiveness for this zone
             effectiveness = 1.0
             for subsystem in strategy['Subsystems']:
@@ -1227,10 +1357,14 @@ def configure_zone_detailed(zone_id):
             else:
                 indicator = "📊 MODERATE"
             
+            # Mark custom strategies
+            if strategy.get('Custom', False):
+                indicator += " ✨"
+            
             strategy_options.append(f"{indicator} {strategy['Strategy']}")
         
         selected_strategy_indices = []
-        for i, strategy in enumerate(STRATEGIES):
+        for i, strategy in enumerate(all_strategies):
             if strategy['Strategy'] in current_strategies:
                 selected_strategy_indices.append(i)
         
@@ -1239,15 +1373,34 @@ def configure_zone_detailed(zone_id):
             strategy_options,
             default=[strategy_options[i] for i in selected_strategy_indices],
             key=f"strategies_{zone_id}",
-            help="Strategies marked with 🔥 have highest effectiveness in this zone"
+            help="Strategies marked with 🔥 have highest effectiveness. ✨ indicates custom strategies."
         )
         
-        # Extract actual strategy names
+        # Extract actual strategy names (with error handling)
         selected_strategies = []
         for display_name in selected_strategies_display:
             # Remove the effectiveness indicator to get the actual strategy name
-            actual_name = display_name.split(' ', 1)[1]  # Remove "🔥 HIGH" etc.
-            selected_strategies.append(actual_name)
+            try:
+                # Handle both custom (with ✨) and regular indicators
+                if "✨" in display_name:
+                    # Remove both effectiveness indicator and custom marker
+                    parts = display_name.split(' ', 2)  # Split on first 2 spaces
+                    if len(parts) >= 3:
+                        actual_name = parts[2].replace(' ✨', '')
+                    else:
+                        actual_name = display_name.split(' ', 1)[1].replace(' ✨', '')
+                else:
+                    # Regular strategy, remove just effectiveness indicator
+                    parts = display_name.split(' ', 1)
+                    if len(parts) >= 2:
+                        actual_name = parts[1]
+                    else:
+                        actual_name = display_name
+                
+                selected_strategies.append(actual_name)
+            except Exception:
+                # Fallback: use the display name as-is
+                selected_strategies.append(display_name)
         
         # Update zone data
         zone_data['strategies'] = selected_strategies
@@ -1259,8 +1412,22 @@ def configure_zone_detailed(zone_id):
             # Collect all available actions from selected strategies
             available_actions = []
             for strategy_name in selected_strategies:
-                strategy = next(s for s in STRATEGIES if s['Strategy'] == strategy_name)
-                available_actions.extend(strategy['Actions'])
+                # Find strategy (with error handling)
+                strategy = None
+                
+                # First check predefined strategies
+                for strat_data in STRATEGIES:
+                    if strat_data["Strategy"] == strategy_name:
+                        strategy = strat_data
+                        break
+                
+                # Then check custom strategies
+                if strategy is None and strategy_name in st.session_state.custom_strategies:
+                    strategy = st.session_state.custom_strategies[strategy_name]
+                
+                # Add actions if strategy found
+                if strategy and "Actions" in strategy:
+                    available_actions.extend(strategy['Actions'])
             
             # Remove duplicates while preserving order
             unique_actions = list(dict.fromkeys(available_actions))
@@ -1281,12 +1448,27 @@ def configure_zone_detailed(zone_id):
             if selected_strategies:
                 st.markdown("**📋 Selected Strategy Details:**")
                 for strategy_name in selected_strategies:
-                    strategy = next(s for s in STRATEGIES if s['Strategy'] == strategy_name)
-                    with st.expander(f"📖 {strategy_name}"):
-                        st.write(f"**Subsystems:** {', '.join(strategy['Subsystems'])}")
-                        st.write(f"**Loop Impact:** {strategy['Loop_Impact']}")
-                        st.write(f"**Evidence Base:** {strategy['Evidence_Base']}")
-                        st.write(f"**Available Actions:** {', '.join(strategy['Actions'])}")
+                    # Find strategy details (with error handling)
+                    strategy = None
+                    
+                    # Check predefined strategies
+                    for strat_data in STRATEGIES:
+                        if strat_data["Strategy"] == strategy_name:
+                            strategy = strat_data
+                            break
+                    
+                    # Check custom strategies
+                    if strategy is None and strategy_name in st.session_state.custom_strategies:
+                        strategy = st.session_state.custom_strategies[strategy_name]
+                    
+                    if strategy:
+                        with st.expander(f"📖 {strategy_name} {'✨ (Custom)' if strategy.get('Custom', False) else ''}"):
+                            st.write(f"**Subsystems:** {', '.join(strategy['Subsystems'])}")
+                            st.write(f"**Loop Impact:** {strategy['Loop_Impact']}")
+                            st.write(f"**Evidence Base:** {strategy['Evidence_Base']}")
+                            if 'Description' in strategy:
+                                st.write(f"**Description:** {strategy['Description']}")
+                            st.write(f"**Available Actions:** {', '.join(strategy['Actions'])}")
         else:
             st.info("Select strategies first to see available actions")
     
@@ -1310,7 +1492,7 @@ def configure_zone_detailed(zone_id):
                     st.warning("⚡ Good predicted performance")
                 else:
                     st.warning("📈 Consider adding more behavioral strategies")
-        except:
+        except Exception:
             pass  # Skip prediction if calculation fails
     else:
         missing = []
@@ -1319,6 +1501,170 @@ def configure_zone_detailed(zone_id):
         if not zone_data.get('actions'):
             missing.append("actions")
         st.warning(f"⚠️ Please select {' and '.join(missing)}")
+
+def custom_strategy_creator_page():
+    st.header("✨ Custom Strategy Creator")
+    
+    if not st.session_state.team_name:
+        st.warning("⚠️ Please start a game session first!")
+        return
+    
+    st.markdown("""
+    Create your own urban sustainability strategies based on keywords and evidence-based principles. 
+    The system will automatically analyze your strategy description and suggest appropriate subsystems and actions.
+    """)
+    
+    # Strategy creation form
+    st.subheader("🎯 Create New Strategy")
+    
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        strategy_name = st.text_input(
+            "Strategy Name",
+            placeholder="e.g., Community-Led Green Infrastructure",
+            help="Give your strategy a descriptive name"
+        )
+        
+        strategy_description = st.text_area(
+            "Strategy Description",
+            placeholder="Describe your strategy using keywords like: community engagement, green spaces, social participation, thermal comfort, air quality, mobility, infrastructure, etc.",
+            height=120,
+            help="Use keywords related to urban systems. The AI will analyze your text to determine focus areas."
+        )
+        
+        # Zone selection for strategy optimization
+        if st.session_state.game_manager.selected_zones:
+            target_zone = st.selectbox(
+                "Optimize for Zone (optional)",
+                ["Generic"] + [CITY_ZONES[zone_id]['name'] for zone_id in st.session_state.game_manager.selected_zones.keys()],
+                help="Choose a specific zone to optimize this strategy for"
+            )
+        else:
+            target_zone = "Generic"
+            st.info("💡 Select zones in the City Map to optimize strategies for specific areas")
+    
+    with col2:
+        st.markdown("**🔧 Strategy Building Tips:**")
+        st.info("""
+        **High-leverage keywords:**
+        - 🎯 **Behavioral:** community, engagement, participation, social, cultural
+        - 🏗️ **Spatial:** infrastructure, planning, development, connectivity
+        - 🌬️ **Air/Sound:** air quality, noise, pollution, clean, quiet
+        - 🌡️ **Thermal:** temperature, cooling, shading, comfort
+        """)
+        
+        st.markdown("**📊 Keyword Analysis Preview:**")
+        if strategy_description:
+            # Real-time keyword analysis
+            detected_subsystems = analyze_keywords_for_subsystem(strategy_description)
+            suggested_actions = suggest_actions_from_keywords(strategy_description)
+            
+            st.success(f"**Detected Focus:** {', '.join(detected_subsystems)}")
+            if suggested_actions:
+                st.info(f"**Suggested Actions:** {len(suggested_actions)} actions detected")
+        else:
+            st.write("Type your description to see analysis...")
+    
+    # Create strategy button
+    if st.button("🚀 Create Strategy", type="primary", disabled=not (strategy_name and strategy_description)):
+        if strategy_name in st.session_state.custom_strategies:
+            st.error(f"Strategy '{strategy_name}' already exists! Choose a different name.")
+        else:
+            # Find target zone ID
+            target_zone_id = None
+            if target_zone != "Generic":
+                for zone_id, zone_info in CITY_ZONES.items():
+                    if zone_info['name'] == target_zone:
+                        target_zone_id = zone_id
+                        break
+            
+            if target_zone_id is None:
+                target_zone_id = list(CITY_ZONES.keys())[0]  # Default to first zone
+            
+            # Create the custom strategy
+            custom_strategy = create_custom_strategy(strategy_name, strategy_description, target_zone_id)
+            
+            st.success(f"✅ Strategy '{strategy_name}' created successfully!")
+            st.balloons()
+            
+            # Show created strategy details
+            with st.expander(f"📖 View Created Strategy: {strategy_name}", expanded=True):
+                col_a, col_b = st.columns(2)
+                
+                with col_a:
+                    st.markdown(f"""
+                    **🎯 Strategy Details:**
+                    - **Name:** {custom_strategy['Strategy']}
+                    - **Subsystems:** {', '.join(custom_strategy['Subsystems'])}
+                    - **Loop Impact:** {custom_strategy['Loop_Impact']}
+                    - **Actions:** {len(custom_strategy['Actions'])}
+                    """)
+                
+                with col_b:
+                    st.markdown(f"""
+                    **📊 System Analysis:**
+                    - **Evidence Base:** {custom_strategy['Evidence_Base']}
+                    - **Optimized For:** {custom_strategy['Created_For_Zone']}
+                    - **Type:** Custom Strategy ✨
+                    """)
+                
+                st.markdown(f"**📝 Description:** {custom_strategy['Description']}")
+                st.markdown(f"**⚙️ Suggested Actions:** {', '.join(custom_strategy['Actions'])}")
+    
+    # Display existing custom strategies
+    if st.session_state.custom_strategies:
+        st.subheader("📚 Your Custom Strategies")
+        
+        for strategy_name, strategy_data in st.session_state.custom_strategies.items():
+            with st.expander(f"✨ {strategy_name}"):
+                col_a, col_b, col_c = st.columns([2, 1, 1])
+                
+                with col_a:
+                    st.markdown(f"**Description:** {strategy_data['Description']}")
+                    st.markdown(f"**Subsystems:** {', '.join(strategy_data['Subsystems'])}")
+                    st.markdown(f"**Actions:** {', '.join(strategy_data['Actions'])}")
+                
+                with col_b:
+                    st.markdown(f"""
+                    **Impact:** {strategy_data['Loop_Impact']}  
+                    **Zone:** {strategy_data['Created_For_Zone']}  
+                    **Evidence:** {strategy_data['Evidence_Base'][:50]}...
+                    """)
+                
+                with col_c:
+                    if st.button(f"🗑️ Delete", key=f"delete_{strategy_name}"):
+                        del st.session_state.custom_strategies[strategy_name]
+                        st.rerun()
+                    
+                    # Usage statistics
+                    usage_count = 0
+                    for zone_data in st.session_state.game_manager.selected_zones.values():
+                        if strategy_name in zone_data.get('strategies', []):
+                            usage_count += 1
+                    
+                    st.metric("Zones Using", usage_count)
+    
+    else:
+        st.info("🌱 No custom strategies created yet. Create your first strategy above!")
+    
+    # Keyword reference guide
+    st.subheader("📖 Keyword Reference Guide")
+    
+    with st.expander("🎯 Complete Keyword Guide", expanded=False):
+        for subsystem, keywords in STRATEGY_KEYWORDS.items():
+            st.markdown(f"**{subsystem}:**")
+            st.write(", ".join(keywords))
+            st.write("")
+        
+        st.markdown("**💡 Pro Tips for Strategy Creation:**")
+        st.markdown("""
+        1. **Be specific:** Use concrete keywords rather than vague terms
+        2. **Focus on behavior:** Include community/social keywords for 8.2x leverage
+        3. **Mix subsystems:** Combine keywords from different areas for comprehensive strategies
+        4. **Think local:** Consider the specific needs of your target zone
+        5. **Evidence-based:** Use keywords that relate to proven urban interventions
+        """)
 
 def results_dashboard_page():
     st.header("📊 Game Results Dashboard")
@@ -1464,6 +1810,31 @@ def results_dashboard_page():
         # Zone performance table
         st.dataframe(zone_df, use_container_width=True)
     
+    # Strategy usage analysis
+    st.subheader("🎯 Strategy Usage Analysis")
+    
+    all_strategies = []
+    custom_strategies_used = 0
+    
+    for zone_data in st.session_state.game_manager.selected_zones.values():
+        strategies = zone_data.get('strategies', [])
+        all_strategies.extend(strategies)
+        
+        for strategy in strategies:
+            if strategy in st.session_state.custom_strategies:
+                custom_strategies_used += 1
+    
+    unique_strategies = list(set(all_strategies))
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Total Strategies Used", len(unique_strategies))
+    with col2:
+        st.metric("Custom Strategies", f"{custom_strategies_used}/{len(st.session_state.custom_strategies)}")
+    with col3:
+        predefined_used = len(unique_strategies) - custom_strategies_used
+        st.metric("Predefined Strategies", f"{predefined_used}/{len(STRATEGIES)}")
+    
     # Spillover effects preview
     st.subheader("🌊 Spillover Effects Preview")
     
@@ -1533,24 +1904,9 @@ def results_dashboard_page():
     else:
         st.error("🔄 **NEEDS PIVOT!** Shift to Pure Human-Social strategies for 8.2x leverage advantage.")
     
-    # Action buttons
-    st.subheader("🎮 Next Steps")
-    
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        if st.button("🔄 Recalculate Effects", type="primary"):
-            st.rerun()
-    
-    with col2:
-        if st.button("📊 View Detailed Analysis"):
-            st.session_state.selected_page = "🌊 Spillover Analysis"
-            st.rerun()
-    
-    with col3:
-        if st.button("📋 Generate Report"):
-            st.session_state.selected_page = "📋 Reports & Export"
-            st.rerun()
+    # Custom strategy recommendation
+    if len(st.session_state.custom_strategies) < 2:
+        st.info("💡 **Try creating custom strategies** in the Custom Strategy Creator for more targeted interventions!")
 
 def spillover_analysis_page():
     st.header("🌊 Spillover Effects Analysis")
@@ -1763,49 +2119,6 @@ def spillover_analysis_page():
         )
         
         st.plotly_chart(fig, use_container_width=True)
-        
-        # Recommendations
-        st.subheader("💡 Spillover Optimization Recommendations")
-        
-        if strong_spillovers > total_connections * 0.3:
-            st.success("🔥 **Excellent spillover strategy!** You have strong network effects.")
-        elif medium_spillovers > total_connections * 0.5:
-            st.warning("⚡ **Good spillover network.** Consider intensifying interventions for stronger effects.")
-        else:
-            st.warning("📈 **Spillover potential exists.** Focus on adjacent zones and behavioral strategies for stronger spillovers.")
-        
-        # Temporal analysis
-        st.subheader("⏰ Temporal Spillover Analysis")
-        
-        delay_analysis = {}
-        for e in edge_data:
-            delay = e['Delay']
-            if delay not in delay_analysis:
-                delay_analysis[delay] = []
-            delay_analysis[delay].append(e['Effect Strength'])
-        
-        temporal_data = []
-        for delay, strengths in delay_analysis.items():
-            temporal_data.append({
-                'Round': f"Round +{delay}",
-                'Number of Effects': len(strengths),
-                'Average Strength': np.mean(strengths),
-                'Total Impact': sum(strengths)
-            })
-        
-        temporal_df = pd.DataFrame(temporal_data)
-        
-        fig = px.bar(
-            temporal_df,
-            x='Round',
-            y='Total Impact',
-            title="Spillover Effects by Round",
-            text='Number of Effects'
-        )
-        
-        st.plotly_chart(fig, use_container_width=True)
-        
-        st.info("💡 **Planning Tip:** Spillover effects will continue to manifest in future rounds, creating cumulative benefits!")
 
 def loop_analysis_page():
     st.header("🔬 Scientific Loop Analysis")
@@ -1894,77 +2207,6 @@ def loop_analysis_page():
         )
         st.plotly_chart(fig, use_container_width=True)
     
-    # Detailed loop analysis
-    st.subheader("🔍 Detailed Loop Analysis")
-    
-    # Sort loops by leverage
-    sorted_loops = sorted(activated_loops, key=lambda x: x.get('leverage', 0), reverse=True)
-    
-    loop_details = []
-    for loop in sorted_loops:
-        loop_id = loop.get('loop_id', 'Unknown')
-        scientific_data = SCIENTIFIC_LOOP_DATA.get(loop_id, {})
-        
-        loop_details.append({
-            'Loop ID': loop_id,
-            'Role': loop.get('role', 'Unknown'),
-            'Strategic Value': loop.get('strategic_value', 'Unknown'),
-            'Leverage': loop.get('leverage', 0),
-            'System Influence': loop.get('influence', 0),
-            'Identity': scientific_data.get('identity', 'Unknown'),
-            'Purity Score': scientific_data.get('purity_score', 0),
-            'Variables': ', '.join(scientific_data.get('variables', [])[:2]) + ('...' if len(scientific_data.get('variables', [])) > 2 else '')
-        })
-    
-    loop_df = pd.DataFrame(loop_details)
-    
-    # Color code by leverage
-    def style_leverage(val):
-        if val > 1.0:
-            return 'background-color: #ffcccc'  # High leverage
-        elif val > 0.5:
-            return 'background-color: #fff2cc'  # Medium leverage
-        else:
-            return 'background-color: #f0f0f0'  # Low leverage
-    
-    styled_loop_df = loop_df.style.applymap(style_leverage, subset=['Leverage'])
-    st.dataframe(styled_loop_df, use_container_width=True)
-    
-    # Top performing loops
-    st.subheader("🏆 Top Performing Loops")
-    
-    top_loops = sorted_loops[:5]  # Top 5 loops
-    
-    for i, loop in enumerate(top_loops, 1):
-        loop_id = loop.get('loop_id', 'Unknown')
-        scientific_data = SCIENTIFIC_LOOP_DATA.get(loop_id, {})
-        
-        with st.expander(f"#{i} Loop {loop_id} - {scientific_data.get('identity', 'Unknown')}"):
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                st.markdown(f"""
-                **🎯 Performance Metrics:**
-                - Leverage: {loop.get('leverage', 0):.3f}
-                - System Influence: {loop.get('influence', 0):.3f}
-                - Strategic Value: {loop.get('strategic_value', 'Unknown')}
-                - Role: {loop.get('role', 'Unknown')}
-                """)
-            
-            with col2:
-                st.markdown(f"""
-                **🔬 Scientific Properties:**
-                - Identity: {scientific_data.get('identity', 'Unknown')}
-                - Purity Score: {scientific_data.get('purity_score', 0):.3f}
-                - Type: {'Reinforcing' if scientific_data.get('type') == 'R' else 'Balancing'} Loop
-                - Integration Rate: {scientific_data.get('integration_rate', 0):.3f}
-                """)
-            
-            st.markdown(f"""
-            **📝 Loop Variables:**
-            {', '.join(scientific_data.get('variables', []))}
-            """)
-    
     # Scientific insights
     st.subheader("🧠 Scientific Insights")
     
@@ -2000,59 +2242,56 @@ def loop_analysis_page():
             st.success("🔥 Applying behavioral primacy!")
         else:
             st.info("💡 Focus more on Human-Social strategies")
+
+def multi_round_comparison_page():
+    st.header("📈 Multi-Round Comparison Analysis")
     
-    # Purity analysis
-    st.subheader("🎭 Loop Purity Analysis")
+    if not st.session_state.team_name:
+        st.warning("⚠️ Please start a game session first!")
+        return
     
-    purity_groups = {'Pure (1.0)': [], 'High (0.8-0.99)': [], 'Mixed (0.5-0.79)': [], 'Complex (<0.5)': []}
+    # Store current round data
+    current_effects = st.session_state.game_manager.calculate_round_effects()
+    current_round = st.session_state.current_round
     
-    for loop in activated_loops:
-        loop_id = loop.get('loop_id', 0)
-        scientific_data = SCIENTIFIC_LOOP_DATA.get(loop_id, {})
-        purity = scientific_data.get('purity_score', 0)
+    if current_effects and current_round not in st.session_state.game_manager.round_history:
+        st.session_state.game_manager.round_history[current_round] = {
+            'effects': current_effects,
+            'zones': copy.deepcopy(st.session_state.game_manager.selected_zones),
+            'timestamp': datetime.now().isoformat()
+        }
+    
+    # Round selector
+    st.subheader("🎯 Round Selection & Comparison")
+    
+    available_rounds = list(st.session_state.game_manager.round_history.keys())
+    if current_effects:
+        available_rounds.append(current_round)
+    
+    if len(available_rounds) < 2:
+        st.info("🎮 Play multiple rounds to see comparison analysis!")
+        st.markdown("""
+        **💡 Multi-Round Strategy Tips:**
+        - **Round 1:** Focus on highest priority zones (Emergency/Critical)
+        - **Round 2:** Expand to adjacent zones for spillover effects
+        - **Round 3:** Target remaining high-impact zones
+        - **Round 4:** Fine-tune and optimize citywide coverage
+        """)
         
-        if purity == 1.0:
-            purity_groups['Pure (1.0)'].append(loop)
-        elif purity >= 0.8:
-            purity_groups['High (0.8-0.99)'].append(loop)
-        elif purity >= 0.5:
-            purity_groups['Mixed (0.5-0.79)'].append(loop)
-        else:
-            purity_groups['Complex (<0.5)'].append(loop)
+        if current_effects:
+            st.subheader("📊 Current Round Performance")
+            uec_data = calculate_normalized_uec_score(current_effects)
+            
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("UEC Score", f"{uec_data['overall_uec']:.1f}/100")
+            with col2:
+                st.metric("Zones", len(st.session_state.game_manager.selected_zones))
+            with col3:
+                st.metric("Loops", len(current_effects.get('activated_loops', [])))
+        return
     
-    purity_data = []
-    for category, loops in purity_groups.items():
-        if loops:
-            avg_leverage = np.mean([loop.get('leverage', 0) for loop in loops])
-            purity_data.append({
-                'Category': category,
-                'Count': len(loops),
-                'Average Leverage': avg_leverage,
-                'Total Leverage': sum(loop.get('leverage', 0) for loop in loops)
-            })
-    
-    if purity_data:
-        purity_df = pd.DataFrame(purity_data)
-        
-        fig = px.bar(
-            purity_df,
-            x='Category',
-            y='Count',
-            color='Average Leverage',
-            title="Loop Distribution by Purity Score"
-        )
-        st.plotly_chart(fig, use_container_width=True)
-        
-        # Recommendations based on purity
-        pure_count = len(purity_groups['Pure (1.0)'])
-        total_count = len(activated_loops)
-        
-        if pure_count / total_count > 0.7:
-            st.success("🎯 **Excellent strategy focus!** High proportion of pure loops for maximum leverage.")
-        elif pure_count / total_count > 0.4:
-            st.warning("⚡ **Good focus.** Consider reducing complex strategies for higher leverage.")
-        else:
-            st.warning("🔄 **Strategy refinement needed.** Focus on pure Human-Social strategies for 8.2x leverage advantage.")
+    st.info("📊 Multi-round comparison available! Select rounds to compare above.")
 
 def multi_round_comparison_page():
     st.header("📈 Multi-Round Comparison Analysis")
@@ -2208,66 +2447,6 @@ def multi_round_comparison_page():
         
         styled_df = comparison_df.style.applymap(style_uec_score, subset=['UEC Score'])
         st.dataframe(styled_df, use_container_width=True)
-        
-        # Round-by-round improvement analysis
-        st.subheader("📈 Improvement Analysis")
-        
-        if len(comparison_data) >= 2:
-            improvements = []
-            for i in range(1, len(comparison_data)):
-                current = comparison_data[i]
-                previous = comparison_data[i-1]
-                
-                uec_change = current['UEC Score'] - previous['UEC Score']
-                loop_change = current['Activated Loops'] - previous['Activated Loops']
-                leverage_change = current['Total Leverage'] - previous['Total Leverage']
-                
-                improvements.append({
-                    'From': previous['Round'],
-                    'To': current['Round'],
-                    'UEC Change': uec_change,
-                    'Loop Change': loop_change,
-                    'Leverage Change': leverage_change,
-                    'Trend': '📈 Improving' if uec_change > 0 else '📉 Declining' if uec_change < 0 else '➡️ Stable'
-                })
-            
-            improvement_df = pd.DataFrame(improvements)
-            st.dataframe(improvement_df, use_container_width=True)
-            
-            # Best performing round
-            best_round_idx = comparison_df['UEC Score'].idxmax()
-            best_round = comparison_df.iloc[best_round_idx]
-            
-            st.success(f"""
-            🏆 **Best Performance:** {best_round['Round']} with UEC Score {best_round['UEC Score']:.1f}
-            - Zones: {best_round['Zones']}
-            - Activated Loops: {best_round['Activated Loops']}
-            - Performance Level: {best_round['Performance Level']}
-            """)
-    
-    # Strategic recommendations
-    st.subheader("💡 Strategic Recommendations")
-    
-    if len(comparison_data) >= 2:
-        latest = comparison_data[-1]
-        previous = comparison_data[-2]
-        
-        if latest['UEC Score'] > previous['UEC Score']:
-            st.success("✅ **Great progress!** Your strategy is working. Continue building on successful interventions.")
-        elif latest['UEC Score'] < previous['UEC Score']:
-            st.warning("⚠️ **Performance declined.** Consider returning to more focused behavioral strategies.")
-        else:
-            st.info("➡️ **Stable performance.** Try expanding to new zones or intensifying current interventions.")
-        
-        # Specific recommendations
-        if latest['Human-Social'] < 50:
-            st.warning("🎯 **Focus on behavioral strategies** - Human-Social subsystem needs attention for 8.2x leverage.")
-        
-        if latest['Zones'] > 6:
-            st.warning("🎯 **Consider zone focus** - Too many zones may dilute effectiveness. Focus on 2-3 high-impact zones.")
-        
-        if latest['Activated Loops'] < 10:
-            st.info("🔄 **Increase strategy intensity** - More comprehensive strategies will activate more feedback loops.")
 
 def reports_export_page():
     st.header("📋 Reports & Export Center")
@@ -2288,7 +2467,7 @@ def reports_export_page():
         - **Game:** {st.session_state.game_name}
         - **Current Round:** {st.session_state.current_round}
         - **Zones Selected:** {len(st.session_state.game_manager.selected_zones)}
-        - **Session ID:** {id(st.session_state.game_manager)}
+        - **Custom Strategies:** {len(st.session_state.custom_strategies)}
         """)
     
     with col2:
@@ -2352,6 +2531,7 @@ def reports_export_page():
                     'team': st.session_state.team_name,
                     'round': st.session_state.current_round,
                     'zones': st.session_state.game_manager.selected_zones,
+                    'custom_strategies': st.session_state.custom_strategies,
                     'effects': current_effects,
                     'timestamp': datetime.now().isoformat()
                 }
@@ -2375,6 +2555,7 @@ def reports_export_page():
                     'game': st.session_state.game_name,
                     'rounds': st.session_state.game_manager.round_history,
                     'current_round': st.session_state.current_round,
+                    'custom_strategies': st.session_state.custom_strategies,
                     'export_timestamp': datetime.now().isoformat()
                 }
                 
@@ -2416,14 +2597,12 @@ def reports_export_page():
                 for zone_data in st.session_state.game_manager.selected_zones.values() 
                 for strategy in zone_data.get('strategies', [])
             )),
+            "custom_strategies_created": len(st.session_state.custom_strategies),
             "activated_loops": len(current_effects.get('activated_loops', [])),
             "submission_timestamp": datetime.now().isoformat()
         }
         
         st.json(submission_data)
-        
-        # QR code for easy submission (placeholder)
-        st.info("📱 **Workshop Organizers:** Use this JSON data for automated scoring and leaderboard updates.")
         
         # Achievement badges
         st.subheader("🏆 Achievement Badges")
@@ -2441,6 +2620,9 @@ def reports_export_page():
         
         if len(current_effects.get('activated_loops', [])) >= 20:
             achievements.append("🔄 **LOOP MASTER** - 20+ Activated Loops")
+        
+        if len(st.session_state.custom_strategies) >= 3:
+            achievements.append("✨ **STRATEGY INNOVATOR** - 3+ Custom Strategies")
         
         behavioral_loops = [
             loop for loop in current_effects.get('activated_loops', []) 
@@ -2481,6 +2663,7 @@ def generate_report(report_type, effects):
 - **Performance Level:** {uec_data['interpretation']['level']}
 - **Zones Intervened:** {len(st.session_state.game_manager.selected_zones)}
 - **Feedback Loops Activated:** {len(effects.get('activated_loops', []))}
+- **Custom Strategies Created:** {len(st.session_state.custom_strategies)}
 
 ## 📊 Subsystem Performance
 
@@ -2495,11 +2678,16 @@ def generate_report(report_type, effects):
 
 {get_strategic_recommendations(uec_data, effects)}
 
+## ✨ Innovation Summary
+
+**Custom Strategies Developed:** {len(st.session_state.custom_strategies)}
+{chr(10).join([f"- {name}: {strategy.get('Description', 'No description')[:100]}..." for name, strategy in st.session_state.custom_strategies.items()])}
+
 ## 📈 Next Steps
 
 1. **Focus Areas:** {'Behavioral strategies for higher leverage' if uec_data['subsystem_scores'].get('Human-Social', 0) < 60 else 'Expand to adjacent zones for spillover effects'}
 2. **Optimization:** {'Reduce zone count and focus interventions' if len(st.session_state.game_manager.selected_zones) > 5 else 'Consider adding complementary zones'}
-3. **Scaling:** {'Prepare for city-wide implementation' if uec_data['overall_uec'] > 70 else 'Strengthen current interventions before expanding'}
+3. **Innovation:** {'Create more targeted custom strategies' if len(st.session_state.custom_strategies) < 3 else 'Refine existing custom strategies for maximum impact'}
 """
     
     elif "Scientific Analysis" in report_type:
@@ -2520,8 +2708,9 @@ def generate_report(report_type, effects):
 - **Total System Leverage:** {total_leverage:.3f}
 - **Average Loop Leverage:** {total_leverage/len(activated_loops) if activated_loops else 0:.3f}
 
-### Loop Distribution by Role
-{get_loop_distribution_analysis(activated_loops)}
+### Custom Strategy Innovation
+**Strategies Created:** {len(st.session_state.custom_strategies)}
+{chr(10).join([f"- **{name}:** {strategy.get('Evidence_Base', 'Custom evidence-based strategy')}" for name, strategy in st.session_state.custom_strategies.items()])}
 
 ### Behavioral Primacy Analysis
 {get_behavioral_primacy_analysis(activated_loops)}
@@ -2531,8 +2720,8 @@ def generate_report(report_type, effects):
 ### Leverage Optimization
 The scientific evidence shows that Pure Human-Social loops provide 8.2x higher leverage than complex multi-subsystem approaches. Your current strategy {'aligns well' if sum(1 for loop in activated_loops if 'Human-Social' in SCIENTIFIC_LOOP_DATA.get(loop.get('loop_id', 0), {}).get('subsystems', [])) > len(activated_loops)*0.6 else 'could better utilize'} this principle.
 
-### System Integration
-{get_system_integration_analysis(effects)}
+### Innovation Impact
+Your {len(st.session_state.custom_strategies)} custom strategies demonstrate {'excellent' if len(st.session_state.custom_strategies) >= 3 else 'good' if len(st.session_state.custom_strategies) >= 1 else 'limited'} innovation in urban sustainability approaches.
 
 ## 🎯 Scientific Recommendations
 
@@ -2555,19 +2744,20 @@ The scientific evidence shows that Pure Human-Social loops provide 8.2x higher l
 - **Achievement Level:** {uec_data['interpretation']['level']}
 - **Message:** {uec_data['interpretation']['message']}
 
+### Innovation Summary
+- **Custom Strategies Created:** {len(st.session_state.custom_strategies)}
+- **Total Unique Strategies Used:** {len(set(strategy for zone_data in st.session_state.game_manager.selected_zones.values() for strategy in zone_data.get('strategies', [])))}
+
 ### Zone Configuration
 {get_zone_configuration_summary()}
 
-### Strategy Implementation
-{get_strategy_implementation_summary()}
-
 ## 📊 Detailed Analysis
+
+### Custom Strategy Analysis
+{get_custom_strategy_analysis()}
 
 ### Subsystem Performance
 {get_subsystem_detailed_analysis(uec_data)}
-
-### Spillover Network
-{get_spillover_network_analysis(effects)}
 
 ### Scientific Loop Activation
 {get_complete_loop_analysis(effects)}
@@ -2593,27 +2783,17 @@ def get_strategic_recommendations(uec_data, effects):
     if uec_data['overall_uec'] < 40:
         recommendations.append("• **Priority:** Shift to Pure Human-Social strategies for maximum leverage")
         recommendations.append("• **Focus:** Implement Behavioral Activation Programs in Emergency zones")
+        recommendations.append("• **Innovation:** Create custom strategies focusing on community engagement keywords")
     elif uec_data['overall_uec'] < 70:
         recommendations.append("• **Expand:** Add adjacent zones for spillover network effects")
         recommendations.append("• **Intensify:** Increase action count in current zones")
+        recommendations.append("• **Customize:** Develop zone-specific strategies using the Custom Strategy Creator")
     else:
         recommendations.append("• **Scale:** Consider city-wide implementation strategy")
         recommendations.append("• **Optimize:** Fine-tune existing interventions")
+        recommendations.append("• **Share:** Your custom strategies could serve as templates for other teams")
     
     return "\n".join(recommendations) if recommendations else "• Continue current successful strategy"
-
-def get_loop_distribution_analysis(activated_loops):
-    """Analyze loop distribution by role"""
-    role_counts = {}
-    for loop in activated_loops:
-        role = loop.get('role', 'Unknown')
-        role_counts[role] = role_counts.get(role, 0) + 1
-    
-    analysis = []
-    for role, count in role_counts.items():
-        analysis.append(f"- **{role}:** {count} loops")
-    
-    return "\n".join(analysis) if analysis else "No loop activation detected"
 
 def get_behavioral_primacy_analysis(activated_loops):
     """Analyze behavioral primacy in loop activation"""
@@ -2635,18 +2815,6 @@ def get_behavioral_primacy_analysis(activated_loops):
     else:
         return "No leverage data available"
 
-def get_system_integration_analysis(effects):
-    """Analyze system integration across subsystems"""
-    total_impact = effects.get('total_city_impact', {})
-    subsystems = ['Human-Social', 'Spatial', 'Air-Soundscape', 'Thermal']
-    
-    analysis = "**Cross-Subsystem Integration:**\n"
-    for subsystem in subsystems:
-        impact = total_impact.get(subsystem, 0)
-        analysis += f"- {subsystem}: {impact:.2f} impact units\n"
-    
-    return analysis
-
 def get_scientific_recommendations(activated_loops, uec_data):
     """Generate science-based recommendations"""
     recommendations = []
@@ -2659,22 +2827,18 @@ def get_scientific_recommendations(activated_loops, uec_data):
     
     if len(behavioral_loops) < len(activated_loops) * 0.6:
         recommendations.append("1. **Increase behavioral focus:** Target 70% of strategies on Human-Social interventions")
+        recommendations.append("2. **Create custom behavioral strategies:** Use keywords like 'community', 'engagement', 'participation'")
     
-    # Check loop purity
-    pure_loops = [
-        loop for loop in activated_loops 
-        if SCIENTIFIC_LOOP_DATA.get(loop.get('loop_id', 0), {}).get('purity_score', 0) == 1.0
-    ]
-    
-    if len(pure_loops) < len(activated_loops) * 0.5:
-        recommendations.append("2. **Simplify strategies:** Focus on pure loops for higher leverage")
+    # Check innovation
+    if len(st.session_state.custom_strategies) < 2:
+        recommendations.append("3. **Boost innovation:** Create custom strategies tailored to your specific zones")
     
     # Check leverage optimization
     avg_leverage = sum(loop.get('leverage', 0) for loop in activated_loops) / len(activated_loops) if activated_loops else 0
     if avg_leverage < 0.8:
-        recommendations.append("3. **Optimize leverage:** Choose strategies that activate high-leverage loops")
+        recommendations.append("4. **Optimize leverage:** Choose strategies that activate high-leverage loops")
     
-    return "\n".join(recommendations) if recommendations else "Current strategy is scientifically sound"
+    return "\n".join(recommendations) if recommendations else "Current strategy is scientifically sound and innovative"
 
 def get_zone_configuration_summary():
     """Generate zone configuration summary"""
@@ -2685,33 +2849,47 @@ def get_zone_configuration_summary():
         strategies = zone_data.get('strategies', [])
         actions = zone_data.get('actions', [])
         
+        custom_strategies = [s for s in strategies if s in st.session_state.custom_strategies]
+        
         summary.append(f"""
 **{zone_info['name']}** ({zone_info['priority_level']} Priority)
-- Strategies: {len(strategies)} ({', '.join(strategies[:2])}{'...' if len(strategies) > 2 else ''})
+- Strategies: {len(strategies)} ({len(custom_strategies)} custom)
 - Actions: {len(actions)}
 - Population Density: {zone_info['characteristics']['population_density']:,}/hectare
+- Custom Innovation: {len(custom_strategies)/len(strategies)*100:.0f}% if strategies else 0%
 """)
     
     return "\n".join(summary)
 
-def get_strategy_implementation_summary():
-    """Generate strategy implementation summary"""
-    all_strategies = []
-    all_actions = []
+def get_custom_strategy_analysis():
+    """Generate custom strategy analysis"""
+    if not st.session_state.custom_strategies:
+        return "No custom strategies created."
     
+    analysis = f"**Total Custom Strategies:** {len(st.session_state.custom_strategies)}\n\n"
+    
+    # Analyze by subsystem focus
+    subsystem_counts = {"Human-Social": 0, "Spatial": 0, "Air-Soundscape": 0, "Thermal": 0}
+    
+    for strategy in st.session_state.custom_strategies.values():
+        for subsystem in strategy.get('Subsystems', []):
+            if subsystem in subsystem_counts:
+                subsystem_counts[subsystem] += 1
+    
+    analysis += "**Custom Strategy Focus Distribution:**\n"
+    for subsystem, count in subsystem_counts.items():
+        analysis += f"- {subsystem}: {count} strategies\n"
+    
+    # Usage analysis
+    total_usage = 0
     for zone_data in st.session_state.game_manager.selected_zones.values():
-        all_strategies.extend(zone_data.get('strategies', []))
-        all_actions.extend(zone_data.get('actions', []))
+        for strategy in zone_data.get('strategies', []):
+            if strategy in st.session_state.custom_strategies:
+                total_usage += 1
     
-    unique_strategies = list(set(all_strategies))
-    unique_actions = list(set(all_actions))
+    analysis += f"\n**Usage Rate:** {total_usage} custom strategy implementations across zones"
     
-    return f"""
-**Total Unique Strategies:** {len(unique_strategies)}
-**Total Unique Actions:** {len(unique_actions)}
-**Most Used Strategies:** {', '.join(unique_strategies[:3])}
-**Strategy Coverage:** {len(unique_strategies)}/{len(STRATEGIES)} available strategies used
-"""
+    return analysis
 
 def get_subsystem_detailed_analysis(uec_data):
     """Generate detailed subsystem analysis"""
@@ -2730,24 +2908,6 @@ def get_subsystem_detailed_analysis(uec_data):
         analysis.append(f"**{subsystem}:** {score:.1f}/100 {performance}")
     
     return "\n".join(analysis)
-
-def get_spillover_network_analysis(effects):
-    """Generate spillover network analysis"""
-    spillover_effects = effects.get('spillover_effects', {})
-    
-    if not spillover_effects:
-        return "No spillover effects detected. Consider selecting adjacent zones."
-    
-    total_connections = sum(len(sources) for sources in spillover_effects.values())
-    affected_zones = len(spillover_effects)
-    
-    return f"""
-**Spillover Network Statistics:**
-- Zones Affected: {affected_zones}
-- Total Connections: {total_connections}
-- Network Density: {total_connections/(len(CITY_ZONES)*(len(CITY_ZONES)-1))*100:.1f}%
-- Average Effects per Zone: {total_connections/affected_zones:.1f}
-"""
 
 def get_complete_loop_analysis(effects):
     """Generate complete loop analysis"""
@@ -2788,6 +2948,9 @@ def get_achievement_summary(uec_data, effects):
     if len(effects.get('activated_loops', [])) >= 20:
         achievements.append("🔄 **LOOP MASTER** - Activated 20+ feedback loops")
     
+    if len(st.session_state.custom_strategies) >= 3:
+        achievements.append("✨ **STRATEGY INNOVATOR** - Created 3+ custom strategies")
+    
     if len(effects.get('spillover_effects', {})) >= 5:
         achievements.append("🌊 **SPILLOVER SPECIALIST** - Created extensive spillover network")
     
@@ -2806,6 +2969,9 @@ def get_learning_outcomes(uec_data, effects):
     if len(effects.get('activated_loops', [])) > 10:
         outcomes.append("• **Systems Thinking:** Demonstrated ability to activate multiple feedback loops for system change")
     
+    if len(st.session_state.custom_strategies) >= 1:
+        outcomes.append("• **Innovation Skills:** Created custom strategies using evidence-based keyword analysis")
+    
     outcomes.append("• **Evidence-Based Planning:** Applied scientific research to urban sustainability challenges")
     outcomes.append("• **Multi-Zone Coordination:** Managed complex multi-zone intervention strategies")
     
@@ -2813,7 +2979,9 @@ def get_learning_outcomes(uec_data, effects):
 
 def get_future_applications_guide(uec_data):
     """Generate guide for applying learnings in real contexts"""
-    if uec_data['overall_uec'] >= 70:
+    innovation_score = len(st.session_state.custom_strategies)
+    
+    if uec_data['overall_uec'] >= 70 and innovation_score >= 2:
         return """
 **Real-World Application Readiness: HIGH**
 
@@ -2821,7 +2989,8 @@ Your strategy demonstrates strong potential for real-world application:
 • Focus on community engagement and behavioral programs first
 • Use spatial and infrastructure interventions to support behavioral change
 • Implement pilot projects in high-priority areas before scaling
-• Monitor spillover effects to optimize resource allocation
+• Apply your custom strategy creation skills to develop context-specific interventions
+• Use the keyword analysis approach to communicate with stakeholders effectively
 • Apply the 70/30 rule: 70% behavioral, 30% technical interventions
 """
     else:
@@ -2830,16 +2999,17 @@ Your strategy demonstrates strong potential for real-world application:
 
 Continue developing these competencies for real-world application:
 • Strengthen focus on human-centered design approaches
-• Practice identifying high-leverage intervention points
+• Practice creating custom strategies using keyword analysis
 • Develop skills in community engagement and stakeholder involvement
 • Learn to sequence interventions for maximum cumulative impact
 • Study successful behavioral urban interventions globally
+• Practice translating academic concepts into actionable strategies
 """
 
 def generate_strategy_summary():
     """Generate CSV summary of strategies used"""
     rows = []
-    rows.append("Zone,Strategy,Subsystems,Actions,Priority")
+    rows.append("Zone,Strategy,Type,Subsystems,Actions,Priority,Custom")
     
     for zone_id, zone_data in st.session_state.game_manager.selected_zones.items():
         zone_info = CITY_ZONES[zone_id]
@@ -2847,12 +3017,17 @@ def generate_strategy_summary():
         actions = zone_data.get('actions', [])
         
         for strategy in strategies:
-            strategy_info = next((s for s in STRATEGIES if s['Strategy'] == strategy), {})
+            is_custom = strategy in st.session_state.custom_strategies
+            
+            if is_custom:
+                strategy_info = st.session_state.custom_strategies[strategy]
+            else:
+                strategy_info = next((s for s in STRATEGIES if s['Strategy'] == strategy), {})
+            
             subsystems = ';'.join(strategy_info.get('Subsystems', []))
-            rows.append(f"{zone_info['name']},{strategy},{subsystems},{len(actions)},{zone_info['priority_level']}")
+            rows.append(f"{zone_info['name']},{strategy},{'Custom' if is_custom else 'Predefined'},{subsystems},{len(actions)},{zone_info['priority_level']},{is_custom}")
     
     return '\n'.join(rows)
 
-# Run the application
 if __name__ == "__main__":
     main()
