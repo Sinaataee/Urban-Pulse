@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Jul 22 15:29:47 2025
-
-@author: sinaa
-"""
-
 #!/usr/bin/env python3
 """
 Urban Pulse - Complete Multi-Zone Spatial Analysis System
@@ -1325,6 +1318,34 @@ def configure_zone_detailed(zone_id):
         
         effectiveness_df = pd.DataFrame(effectiveness_data)
         st.dataframe(effectiveness_df, use_container_width=True)
+        
+        # Quick Custom Strategy Creator
+        st.markdown("**✨ Create Custom Strategy for This Zone:**")
+        with st.expander("🎯 Quick Strategy Creator", expanded=False):
+            custom_strategy_name = st.text_input(
+                "Strategy Name",
+                placeholder=f"Custom strategy for {zone_info['name']}",
+                key=f"custom_name_{zone_id}"
+            )
+            
+            custom_description = st.text_area(
+                "Strategy Description (use keywords)",
+                placeholder="Describe your strategy using keywords like: community, engagement, green spaces, air quality, etc.",
+                height=80,
+                key=f"custom_desc_{zone_id}"
+            )
+            
+            if st.button(f"✨ Create Strategy", key=f"create_custom_{zone_id}"):
+                if custom_strategy_name and custom_description:
+                    if custom_strategy_name not in st.session_state.custom_strategies:
+                        # Create the custom strategy
+                        custom_strategy = create_custom_strategy(custom_strategy_name, custom_description, zone_id)
+                        st.success(f"✅ Custom strategy '{custom_strategy_name}' created!")
+                        st.rerun()
+                    else:
+                        st.error(f"Strategy '{custom_strategy_name}' already exists!")
+                else:
+                    st.warning("Please fill in both name and description")
     
     with col2:
         # Strategy selection
@@ -1332,16 +1353,12 @@ def configure_zone_detailed(zone_id):
         
         current_strategies = zone_data.get('strategies', [])
         
-        # Combine predefined and custom strategies
-        all_strategies = STRATEGIES.copy()
-        
-        # Add custom strategies
-        for custom_name, custom_strategy in st.session_state.custom_strategies.items():
-            all_strategies.append(custom_strategy)
-        
-        # Display strategies with effectiveness indicators
+        # Create a mapping for strategy lookup
+        strategy_lookup = {}
         strategy_options = []
-        for strategy in all_strategies:
+        
+        # Add predefined strategies
+        for strategy in STRATEGIES:
             # Calculate effectiveness for this zone
             effectiveness = 1.0
             for subsystem in strategy['Subsystems']:
@@ -1357,50 +1374,52 @@ def configure_zone_detailed(zone_id):
             else:
                 indicator = "📊 MODERATE"
             
-            # Mark custom strategies
-            if strategy.get('Custom', False):
-                indicator += " ✨"
-            
-            strategy_options.append(f"{indicator} {strategy['Strategy']}")
+            display_name = f"{indicator} {strategy['Strategy']}"
+            strategy_options.append(display_name)
+            strategy_lookup[display_name] = strategy['Strategy']
         
-        selected_strategy_indices = []
-        for i, strategy in enumerate(all_strategies):
-            if strategy['Strategy'] in current_strategies:
-                selected_strategy_indices.append(i)
+        # Add custom strategies
+        for custom_name, custom_strategy in st.session_state.custom_strategies.items():
+            # Calculate effectiveness for this zone
+            effectiveness = 1.0
+            for subsystem in custom_strategy['Subsystems']:
+                multiplier = ZONE_STRATEGY_MULTIPLIERS.get(subsystem, {}).get(zone_id, 1.0)
+                effectiveness *= multiplier
+            
+            avg_effectiveness = effectiveness ** (1.0 / len(custom_strategy['Subsystems']))
+            
+            if avg_effectiveness > 1.5:
+                indicator = "🔥 HIGH"
+            elif avg_effectiveness > 1.0:
+                indicator = "⚡ GOOD"
+            else:
+                indicator = "📊 MODERATE"
+            
+            display_name = f"{indicator} ✨ {custom_strategy['Strategy']}"
+            strategy_options.append(display_name)
+            strategy_lookup[display_name] = custom_strategy['Strategy']
+        
+        # Find currently selected options
+        selected_display_names = []
+        for strategy_name in current_strategies:
+            for display_name, actual_name in strategy_lookup.items():
+                if actual_name == strategy_name:
+                    selected_display_names.append(display_name)
+                    break
         
         selected_strategies_display = st.multiselect(
             "Choose strategies for this zone:",
             strategy_options,
-            default=[strategy_options[i] for i in selected_strategy_indices],
+            default=selected_display_names,
             key=f"strategies_{zone_id}",
-            help="Strategies marked with 🔥 have highest effectiveness. ✨ indicates custom strategies."
+            help="🔥 = High effectiveness, ⚡ = Good effectiveness, 📊 = Moderate effectiveness, ✨ = Custom strategy"
         )
         
-        # Extract actual strategy names (with error handling)
+        # Extract actual strategy names using lookup
         selected_strategies = []
         for display_name in selected_strategies_display:
-            # Remove the effectiveness indicator to get the actual strategy name
-            try:
-                # Handle both custom (with ✨) and regular indicators
-                if "✨" in display_name:
-                    # Remove both effectiveness indicator and custom marker
-                    parts = display_name.split(' ', 2)  # Split on first 2 spaces
-                    if len(parts) >= 3:
-                        actual_name = parts[2].replace(' ✨', '')
-                    else:
-                        actual_name = display_name.split(' ', 1)[1].replace(' ✨', '')
-                else:
-                    # Regular strategy, remove just effectiveness indicator
-                    parts = display_name.split(' ', 1)
-                    if len(parts) >= 2:
-                        actual_name = parts[1]
-                    else:
-                        actual_name = display_name
-                
-                selected_strategies.append(actual_name)
-            except Exception:
-                # Fallback: use the display name as-is
-                selected_strategies.append(display_name)
+            if display_name in strategy_lookup:
+                selected_strategies.append(strategy_lookup[display_name])
         
         # Update zone data
         zone_data['strategies'] = selected_strategies
@@ -1411,44 +1430,50 @@ def configure_zone_detailed(zone_id):
         if selected_strategies:
             # Collect all available actions from selected strategies
             available_actions = []
+            strategy_action_map = {}
+            
             for strategy_name in selected_strategies:
-                # Find strategy (with error handling)
+                # Find strategy in predefined strategies
                 strategy = None
-                
-                # First check predefined strategies
                 for strat_data in STRATEGIES:
                     if strat_data["Strategy"] == strategy_name:
                         strategy = strat_data
                         break
                 
-                # Then check custom strategies
+                # If not found, check custom strategies
                 if strategy is None and strategy_name in st.session_state.custom_strategies:
                     strategy = st.session_state.custom_strategies[strategy_name]
                 
                 # Add actions if strategy found
                 if strategy and "Actions" in strategy:
-                    available_actions.extend(strategy['Actions'])
+                    strategy_actions = strategy['Actions']
+                    available_actions.extend(strategy_actions)
+                    strategy_action_map[strategy_name] = strategy_actions
             
             # Remove duplicates while preserving order
             unique_actions = list(dict.fromkeys(available_actions))
             
-            current_actions = zone_data.get('actions', [])
-            
-            selected_actions = st.multiselect(
-                "Choose specific actions to implement:",
-                unique_actions,
-                default=current_actions,
-                key=f"actions_{zone_id}",
-                help="Select specific actions that will be implemented in this zone"
-            )
-            
-            zone_data['actions'] = selected_actions
+            if unique_actions:
+                current_actions = zone_data.get('actions', [])
+                
+                selected_actions = st.multiselect(
+                    "Choose specific actions to implement:",
+                    unique_actions,
+                    default=[action for action in current_actions if action in unique_actions],
+                    key=f"actions_{zone_id}",
+                    help="Select specific actions that will be implemented in this zone"
+                )
+                
+                zone_data['actions'] = selected_actions
+            else:
+                st.warning("No actions available for selected strategies")
+                zone_data['actions'] = []
             
             # Show strategy details
             if selected_strategies:
                 st.markdown("**📋 Selected Strategy Details:**")
                 for strategy_name in selected_strategies:
-                    # Find strategy details (with error handling)
+                    # Find strategy details
                     strategy = None
                     
                     # Check predefined strategies
@@ -1462,19 +1487,24 @@ def configure_zone_detailed(zone_id):
                         strategy = st.session_state.custom_strategies[strategy_name]
                     
                     if strategy:
-                        with st.expander(f"📖 {strategy_name} {'✨ (Custom)' if strategy.get('Custom', False) else ''}"):
+                        is_custom = strategy.get('Custom', False)
+                        with st.expander(f"📖 {strategy_name} {'✨ (Custom)' if is_custom else ''}"):
                             st.write(f"**Subsystems:** {', '.join(strategy['Subsystems'])}")
                             st.write(f"**Loop Impact:** {strategy['Loop_Impact']}")
                             st.write(f"**Evidence Base:** {strategy['Evidence_Base']}")
                             if 'Description' in strategy:
                                 st.write(f"**Description:** {strategy['Description']}")
-                            st.write(f"**Available Actions:** {', '.join(strategy['Actions'])}")
-        else:
-            st.info("Select strategies first to see available actions")
+                            if strategy_name in strategy_action_map:
+                                st.write(f"**Available Actions:** {', '.join(strategy_action_map[strategy_name])}")
     
     # Configuration summary
     if zone_data.get('strategies') and zone_data.get('actions'):
         st.success(f"✅ Zone configured: {len(zone_data['strategies'])} strategies, {len(zone_data['actions'])} actions")
+        
+        # Show custom strategy count
+        custom_count = sum(1 for strategy in zone_data['strategies'] if strategy in st.session_state.custom_strategies)
+        if custom_count > 0:
+            st.info(f"✨ {custom_count} custom strategies included")
         
         # Predict zone impact
         try:
@@ -1501,6 +1531,10 @@ def configure_zone_detailed(zone_id):
         if not zone_data.get('actions'):
             missing.append("actions")
         st.warning(f"⚠️ Please select {' and '.join(missing)}")
+        
+        # Show hint for creating custom strategies
+        if not zone_data.get('strategies'):
+            st.info("💡 **Tip:** You can create custom strategies tailored to this zone using the Quick Strategy Creator above!")
 
 def custom_strategy_creator_page():
     st.header("✨ Custom Strategy Creator")
