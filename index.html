@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Urban Pulse — Pre-Workshop</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,300;9..144,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #0d1117;
+  --ink2: #24292f;
+  --muted: #57606a;
+  --border: #d0d7de;
+  --bg: #f6f8fa;
+  --white: #ffffff;
+  --accent: #1d4ed8;
+  --accent-light: #eff6ff;
+  --green: #15803d;
+  --green-light: #f0fdf4;
+  --amber: #b45309;
+  --amber-light: #fffbeb;
+  --red: #b91c1c;
+  --red-light: #fef2f2;
+  --purple: #7c3aed;
+  --purple-light: #f5f3ff;
+  --teal: #0f766e;
+  --teal-light: #f0fdfa;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;display:flex;flex-direction:column}
+
+/* HEADER */
+#site-header{
+  background:var(--ink);
+  padding:16px 32px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+  border-bottom:1px solid #30363d;
+}
+.logo{font-family:'Fraunces',serif;font-size:18px;color:white;letter-spacing:-0.5px}
+.logo span{color:#60a5fa}
+.progress-wrap{display:flex;align-items:center;gap:12px}
+.progress-label{font-family:'DM Mono',monospace;font-size:11px;color:#8b949e}
+.progress-bar{width:200px;height:4px;background:#30363d;border-radius:2px}
+.progress-fill{height:100%;background:linear-gradient(90deg,#3b82f6,#60a5fa);border-radius:2px;transition:width 0.5s}
+#step-counter{font-family:'DM Mono',monospace;font-size:11px;color:#8b949e}
+
+/* MAIN LAYOUT */
+#app{flex:1;display:flex;flex-direction:column;max-width:1100px;margin:0 auto;width:100%;padding:32px 24px}
+
+/* INTRO SCREEN */
+#intro-screen{display:flex;flex-direction:column;align-items:center;text-align:center;padding:60px 24px;gap:24px}
+.intro-eyebrow{font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);letter-spacing:2px;text-transform:uppercase}
+.intro-title{font-family:'Fraunces',serif;font-size:42px;line-height:1.1;color:var(--ink);max-width:640px}
+.intro-title em{color:var(--accent);font-style:normal}
+.intro-body{font-size:15px;color:var(--muted);max-width:560px;line-height:1.75}
+.intro-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:580px;width:100%;margin-top:8px}
+.meta-card{background:white;border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
+.meta-card .num{font-family:'Fraunces',serif;font-size:28px;color:var(--accent)}
+.meta-card .lbl{font-size:11px;color:var(--muted);margin-top:2px}
+.meta-inputs{display:flex;flex-direction:column;gap:10px;width:100%;max-width:400px}
+.meta-inputs input, .meta-inputs select{
+  padding:10px 14px;border:1px solid var(--border);border-radius:8px;
+  font-size:13px;font-family:'DM Sans',sans-serif;background:white;color:var(--ink);
+  outline:none;transition:border-color 0.2s;
+}
+.meta-inputs input:focus, .meta-inputs select:focus{border-color:var(--accent)}
+.btn-start{
+  background:var(--ink);color:white;border:none;
+  padding:14px 36px;border-radius:8px;font-size:14px;font-weight:500;
+  cursor:pointer;transition:all 0.2s;font-family:'DM Sans',sans-serif;
+  display:flex;align-items:center;gap:8px;
+}
+.btn-start:hover{background:var(--accent);transform:translateY(-1px)}
+.btn-start svg{width:16px;height:16px}
+
+/* STRATEGY SCREEN */
+#strategy-screen{display:none;flex-direction:column;gap:24px}
+.strat-header{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:start}
+.strat-meta{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.strat-id{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);background:var(--bg);padding:3px 8px;border-radius:4px;border:1px solid var(--border)}
+.type-pill{font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px}
+.type-beh{background:var(--purple-light);color:var(--purple)}
+.type-spa{background:var(--amber-light);color:var(--amber)}
+.type-inf{background:var(--green-light);color:var(--green)}
+.strat-name{font-family:'Fraunces',serif;font-size:32px;color:var(--ink);line-height:1.1}
+.strat-group{font-size:12px;color:var(--muted);margin-top:4px}
+.strat-desc{font-size:13px;color:var(--muted);line-height:1.7;max-width:680px;background:white;border:1px solid var(--border);border-radius:10px;padding:16px 20px}
+.strat-hint{font-size:12px;color:var(--accent);background:var(--accent-light);border:1px solid #bfdbfe;border-radius:8px;padding:10px 14px;display:flex;gap:8px;align-items:flex-start;max-width:680px}
+.strat-hint svg{width:14px;height:14px;flex-shrink:0;margin-top:1px}
+.selection-summary{font-family:'DM Mono',monospace;font-size:11px;color:var(--green);background:var(--green-light);padding:6px 12px;border-radius:20px;border:1px solid #bbf7d0;align-self:start;margin-top:8px}
+
+/* VARIABLE CLUSTERS */
+.vars-section{display:flex;flex-direction:column;gap:16px}
+.vars-instruction{font-size:13px;color:var(--muted);font-style:italic}
+.cluster{background:white;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.cluster-head{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none}
+.cluster-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.cluster-label{font-size:12px;font-weight:500;color:var(--ink)}
+.cluster-count{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-left:auto}
+.cluster-toggle{margin-left:4px;color:var(--muted);transition:transform 0.2s}
+.cluster-toggle.open{transform:rotate(180deg)}
+.chips-wrap{display:flex;flex-wrap:wrap;gap:6px;padding:12px 16px}
+.chip{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:5px 12px;border-radius:20px;font-size:11px;cursor:pointer;
+  border:1.5px solid var(--border);background:var(--bg);color:var(--muted);
+  transition:all 0.15s;user-select:none;line-height:1.4;
+}
+.chip:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+.chip.selected{border-color:var(--accent);background:var(--accent);color:white}
+.chip.selected .chip-check{opacity:1}
+.chip-check{opacity:0;transition:opacity 0.15s}
+
+/* NAVIGATION */
+.nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:16px;border-top:1px solid var(--border)}
+.btn-nav{
+  display:flex;align-items:center;gap:6px;
+  padding:10px 22px;border-radius:8px;font-size:13px;font-weight:500;
+  cursor:pointer;transition:all 0.2s;font-family:'DM Sans',sans-serif;border:1px solid var(--border);
+  background:white;color:var(--ink);
+}
+.btn-nav:hover{background:var(--bg)}
+.btn-nav.primary{background:var(--ink);color:white;border-color:var(--ink)}
+.btn-nav.primary:hover{background:var(--accent);border-color:var(--accent)}
+.btn-nav svg{width:14px;height:14px}
+.skip-link{font-size:11px;color:var(--muted);cursor:pointer;text-decoration:underline}
+.skip-link:hover{color:var(--ink)}
+
+/* RESULTS SCREEN */
+#results-screen{display:none;flex-direction:column;gap:24px;align-items:center;text-align:center;padding:40px 0}
+.results-title{font-family:'Fraunces',serif;font-size:36px;color:var(--ink)}
+.results-sub{font-size:15px;color:var(--muted);max-width:520px;line-height:1.7}
+.results-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;max-width:700px;text-align:left}
+.res-card{background:white;border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.res-card .rc-name{font-size:11px;font-weight:500;color:var(--ink);margin-bottom:4px}
+.res-card .rc-count{font-family:'Fraunces',serif;font-size:22px;color:var(--accent)}
+.res-card .rc-vars{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.5}
+.code-box{background:var(--ink);color:#79c0ff;font-family:'DM Mono',monospace;font-size:11px;padding:16px 20px;border-radius:10px;max-width:700px;width:100%;word-break:break-all;line-height:1.6;text-align:left;position:relative}
+.copy-btn{position:absolute;top:10px;right:10px;background:#30363d;color:#8b949e;border:none;border-radius:5px;padding:4px 10px;font-size:10px;cursor:pointer;font-family:'DM Mono',monospace}
+.copy-btn:hover{background:var(--accent);color:white}
+.submit-instruction{font-size:13px;color:var(--muted);max-width:520px;line-height:1.7;background:white;border:1px solid var(--border);border-radius:10px;padding:16px 20px;text-align:left}
+.submit-instruction strong{color:var(--ink)}
+</style>
+</head>
+<body>
+
+<header id="site-header">
+  <div class="logo">Urban<span>Pulse</span></div>
+  <div class="progress-wrap">
+    <span class="progress-label">Progress</span>
+    <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+    <span id="step-counter">0 / 18</span>
+  </div>
+</header>
+
+<div id="app">
+
+<!-- INTRO -->
+<div id="intro-screen">
+  <div class="intro-eyebrow">Pre-Workshop Activity</div>
+  <h1 class="intro-title">Map strategies to <em>urban variables</em></h1>
+  <p class="intro-body">Before the Urban Pulse workshop, explore 18 urban strategies and select which urban system variables you think each strategy would affect. There are no right or wrong answers — we want your mental model <em>before</em> the game.</p>
+  <div class="intro-meta">
+    <div class="meta-card"><div class="num">18</div><div class="lbl">Strategies</div></div>
+    <div class="meta-card"><div class="num">50</div><div class="lbl">Variables</div></div>
+    <div class="meta-card"><div class="num">~15'</div><div class="lbl">Minutes</div></div>
+  </div>
+  <div class="meta-inputs">
+    <input type="text" id="inp-session" placeholder="Session code (e.g. UA-2025-01)">
+    <select id="inp-bg">
+      <option value="">Your academic background...</option>
+      <option>Urban Planning / Urbanism</option>
+      <option>Environmental Engineering</option>
+      <option>Architecture / Landscape Architecture</option>
+      <option>Geography / Spatial Sciences</option>
+      <option>Social Sciences</option>
+      <option>Engineering (other)</option>
+      <option>Other</option>
+    </select>
+    <select id="inp-level">
+      <option value="">Your level of study...</option>
+      <option>Bachelor's student</option>
+      <option>Master's student</option>
+      <option>PhD student / Researcher</option>
+      <option>Professional / Practitioner</option>
+      <option>Other</option>
+    </select>
+  </div>
+  <button class="btn-start" onclick="startApp()">
+    Begin activity
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+  </button>
+</div>
+
+<!-- STRATEGY -->
+<div id="strategy-screen">
+  <div class="strat-header">
+    <div>
+      <div class="strat-meta">
+        <span class="strat-id" id="s-id">S01</span>
+        <span class="type-pill" id="s-type-pill">Behavioral</span>
+        <span class="strat-group" id="s-group"></span>
+      </div>
+      <h2 class="strat-name" id="s-name"></h2>
+    </div>
+    <div class="selection-summary" id="sel-summary">0 variables selected</div>
+  </div>
+  <div class="strat-desc" id="s-desc"></div>
+  <div class="strat-hint">
+    <svg viewBox="0 0 16 16" fill="var(--accent)"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm.75 10.5h-1.5v-5h1.5v5zm0-6.5h-1.5V3.5h1.5V5z"/></svg>
+    <span id="s-hint"></span>
+  </div>
+
+  <div class="vars-section">
+    <p class="vars-instruction">Click on any variable you believe this strategy would affect. Variables are grouped by urban system domain.</p>
+    <div id="clusters-container"></div>
+  </div>
+
+  <div class="nav-row">
+    <button class="btn-nav" id="btn-back" onclick="navigate(-1)">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 8H3M7 4L3 8l4 4"/></svg>
+      Previous
+    </button>
+    <span class="skip-link" onclick="navigate(1)">Skip this strategy →</span>
+    <button class="btn-nav primary" id="btn-next" onclick="navigate(1)">
+      Next strategy
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div id="results-screen">
+  <div class="results-title">Activity complete</div>
+  <p class="results-sub">Your responses have been encoded below. Copy the response code and paste it into the submission form your facilitator shared.</p>
+  <div class="results-grid" id="results-grid"></div>
+  <div class="code-box" id="code-box">
+    <button class="copy-btn" onclick="copyCode()">Copy</button>
+    <span id="code-content"></span>
+  </div>
+  <div class="submit-instruction">
+    <strong>What to do next:</strong><br>
+    Open the Google Form link provided by your facilitator. Paste your response code into the single field and submit. Your data will be automatically recorded for the research study. See you at the workshop!
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<script>
+const CLUSTERS = [
+  {
+    id:'governance',label:'Governance & Planning',color:'#7c3aed',
+    vars:[
+      'Planning & management mindset / development attitudes',
+      'Infrastructure growth and maintenance',
+    ]
+  },
+  {
+    id:'spatial',label:'Urban Form & Land Use',color:'#b45309',
+    vars:[
+      'Physical circumstances of urban street network',
+      'Building density',
+      'Low density / sprawl growth',
+      'High-density mixed land use / activities',
+      'Mid-rise buildings & integrated land use',
+      'Land use distribution (rate of mixed-use zoning)',
+      'Fragmented rate of urban form (car-dependent mobility)',
+    ]
+  },
+  {
+    id:'green',label:'Green & Public Space',color:'#15803d',
+    vars:[
+      'Balanced allocation of green/public spaces',
+      'Landscape patterns',
+      'Green and open spaces (area or accessibility)',
+      'Public spaces (area or accessibility)',
+      'Integration rate of public/green space with other land uses',
+      'Spatial integration rate of public spaces',
+    ]
+  },
+  {
+    id:'mobility',label:'Mobility & Accessibility',color:'#0f766e',
+    vars:[
+      'Pedestrian-friendly street networks (availability level)',
+      'Cycling route',
+      'Spatial active mobility infrastructure',
+      'Walking ways',
+      'Desire to cycling / scooter',
+      'Desire to walking',
+      'Level of active mobility usage',
+      'Active mobility tendency and usage',
+      'Motorized transport usage (traffic congestion effect)',
+    ]
+  },
+  {
+    id:'social',label:'Social & Economic Dynamics',color:'#1d4ed8',
+    vars:[
+      'Social vitality',
+      'Recreational and social advantages rate',
+      'Gender social engagement preferences',
+      'Local economic activities',
+      'Active attendance level in open/public spaces',
+      'Social vitality (impact on community experience)',
+    ]
+  },
+  {
+    id:'environment',label:'Environmental Quality',color:'#0891b2',
+    vars:[
+      'Airflow freedom',
+      'Atmospheric diffusion capability',
+      'Carbon sequestration rate',
+      'Evapotranspiration and albedo effects',
+      'Air purification rate',
+      'NOx/PM concentration',
+      'Air quality level',
+      'Soundscape quality level',
+      'Local microclimate positive change',
+      'Heat retention rate',
+      'Urban heat stress',
+    ]
+  },
+  {
+    id:'exposure',label:'Health & Exposure',color:'#b91c1c',
+    vars:[
+      'Exposure rate to air pollution',
+      'Exposure possibility to air pollution',
+      'Exposure possibility to noise',
+      'Exposure rate to noise',
+    ]
+  }
+];
+
+const ALL_VARS = CLUSTERS.flatMap(c=>c.vars);
+
+const STRATEGIES = [
+  {id:'S01',name:'Neighborhood Watch',type:'Behavioral',group:'Community Representative',
+   desc:'A community-based safety and surveillance program that builds collective responsibility among residents, increasing perceived safety and encouraging people to spend more time in outdoor spaces. The program strengthens social bonds and trust between neighbors over time.',
+   hint:'Think about what happens to outdoor behavior, social cohesion, and sense of safety when residents actively monitor and engage with shared spaces.'},
+  {id:'S02',name:'Community Festival',type:'Behavioral',group:'Community Representative',
+   desc:'A recurring community event held in public spaces that activates outdoor life and builds social capital. Festivals bring together residents from different backgrounds, temporarily transforming underused spaces into vibrant community hubs.',
+   hint:'Consider the effects of programmed activity on public space use, social interaction, local economy, and soundscape conditions.'},
+  {id:'S03',name:'Community Gardens',type:'Behavioral',group:'Community Representative / Environmental Advocate',
+   desc:'Shared urban growing spaces established and maintained by community members. Community gardens combine social interaction with direct environmental function — introducing vegetation into urban fabric and improving local air and microclimate conditions.',
+   hint:'Community gardens work on multiple systems at once. Think about social, ecological, and microclimate dimensions simultaneously.'},
+  {id:'S04',name:'Cultural Hub',type:'Behavioral',group:'Social Catalyst',
+   desc:'A dedicated community facility offering cultural programming, creative activities, and social services. Cultural hubs function as third places — spaces outside home and work where social interaction occurs organically — attracting diverse groups and generating sustained pedestrian activity.',
+   hint:'Think about how a permanent cultural facility affects social diversity, local economy, pedestrian flows, and long-term vitality of surrounding spaces.'},
+  {id:'S05',name:'Participatory Planning',type:'Behavioral',group:'Urban Planner',
+   desc:'A governance process that involves residents directly in urban planning and design decisions. Participatory planning shifts the institutional culture of development by building community ownership of public spaces and generating social capital.',
+   hint:'Consider how changing who makes planning decisions affects institutional mindset, community trust, public space use, and long-term outcomes.'},
+  {id:'S06',name:'Walking Groups',type:'Behavioral',group:'Mobility Specialist',
+   desc:'Organized community walking programs that encourage residents to explore their neighborhood on foot together. Walking groups increase physical activity and social connection — but also raise participant exposure to urban air and noise pollution along routes.',
+   hint:'This strategy has both positive and potentially negative effects. Consider the mobility benefits AND the exposure consequences of walking near traffic.'},
+  {id:'S07',name:'Residential Swap',type:'Spatial',group:'Urban Planner / Social Catalyst / Developer',
+   desc:'A spatial planning intervention that redistributes residential land use across city zones to achieve better neighborhood balance, reduce fragmentation, and promote compact urban form. Shifting where people live changes mobility patterns, building density, and spatial structure.',
+   hint:'Think about the downstream effects of changing residential density distribution: who walks, who drives, what gets built, and how the street network is used.'},
+  {id:'S08',name:'Swap Res-Commercial',type:'Spatial',group:'Developer',
+   desc:'A land use conversion that transforms residential zones into mixed residential-commercial areas, activating ground-floor economic functions alongside housing. Introduces mixed primary uses into mono-functional areas, generating pedestrian activity and local economic diversity.',
+   hint:'Consider what happens to street life, economic activity, social vitality, and mobility patterns when daily needs are co-located with housing.'},
+  {id:'S09',name:'Park Placement',type:'Spatial',group:'Urban Planner / Environmental Advocate',
+   desc:'A spatial intervention that repositions or creates park space adjacent to residential areas to maximise accessibility. The strategic placement of parks determines whether green space actually generates outdoor activity, social interaction, and environmental co-benefits.',
+   hint:'Location matters as much as size. Think about how proximity to population affects actual use, social behavior, air quality, and microclimate effects.'},
+  {id:'S10',name:'Productive Development',type:'Spatial',group:'Developer',
+   desc:'Replacement of vacant or speculative land with productive mixed-use development combining workspace, services, and public functions. Productive development diversifies local economic activity and counters mono-functional sprawl, requiring a shift in planning mindset.',
+   hint:'Think about how introducing economic production functions into urban fabric affects land use diversity, planning culture, local economy, and social vitality.'},
+  {id:'S11',name:'Slum Upgrade',type:'Infrastructure',group:'Social Catalyst',
+   desc:'Formalization and physical improvement of informal settlements through investment in street networks, drainage, housing quality, and pedestrian access. Upgrading addresses the physical fragmentation and exposure risks of informal urban fabric across mobility, health, and environmental quality.',
+   hint:'Informal settlement upgrading is a multi-domain intervention. Consider physical, social, environmental, and health dimensions simultaneously.'},
+  {id:'S12',name:'Green Infrastructure',type:'Infrastructure',group:'Urban Planner / Environmental Advocate',
+   desc:'Installation of urban green infrastructure including trees, vegetation corridors, green roofs, and permeable surfaces. Green infrastructure produces the widest range of co-benefits of any built intervention — from heat reduction and air quality to noise attenuation and social space quality.',
+   hint:'This is the broadest-impact strategy. Think across all urban system domains: air, heat, noise, water, carbon, social, and aesthetic quality.'},
+  {id:'S13',name:'Air Filtration',type:'Infrastructure',group:'Urban Planner / Developer',
+   desc:'Technical installation of air filtration systems designed to reduce ambient concentrations of particulate matter (PM2.5/PM10) and nitrogen oxides (NOx) in targeted urban zones. Air filtration directly intervenes in the environmental state of the urban atmosphere.',
+   hint:'Focus on the chain from reduced pollutant concentration to health exposure to behavioral change — what happens when air quality improves in a specific zone?'},
+  {id:'S14',name:'Pollution Reduction',type:'Infrastructure',group:'Environmental Advocate',
+   desc:'Relocation or mitigation of pollution sources — primarily industrial land uses — away from residential areas. Source reduction is the most effective intervention for decreasing ambient pollutant concentrations, directly modifying the spatial relationship between emission sources and exposed populations.',
+   hint:'Think about what changes when the source of pollution is removed or moved: concentration, exposure, health, outdoor activity, and motorized traffic patterns.'},
+  {id:'S15',name:'Solar Energy Grid',type:'Infrastructure',group:'Environmental Advocate',
+   desc:'Installation of distributed renewable energy infrastructure to substitute fossil-fuel-based electricity and heating in the district. Renewable energy substitution eliminates combustion-based NOx and PM emissions from energy generation, producing air quality co-benefits alongside energy independence.',
+   hint:'Consider the chain: renewable energy → reduced combustion → reduced emissions → improved air quality → what comes next for outdoor activity and health?'},
+  {id:'S16',name:'Eco-District',type:'Infrastructure',group:'Urban Planner / Developer',
+   desc:'Comprehensive integrated neighborhood development combining energy systems, green infrastructure, mobility networks, and social infrastructure in a coordinated intervention at district scale. Eco-districts are the highest-investment, highest-impact strategy in the game.',
+   hint:'The eco-district touches every urban system. Think expansively — energy, green space, mobility, air quality, social vitality, governance, and microclimate all interact here.'},
+  {id:'S17',name:'Transit Hub',type:'Infrastructure',group:'Mobility Specialist',
+   desc:'Development of a multi-modal transit node that integrates public transport, cycling, and pedestrian infrastructure in a single accessible location. Transit hubs reduce private vehicle dependency by making alternative modes competitive, generating active mobility and reducing motorized traffic.',
+   hint:'Consider the full mobility system effect: what happens to car use, walking, cycling, emissions, noise, and local economic activity when transit becomes genuinely accessible?'},
+  {id:'S18',name:'Smart Mobility Network',type:'Infrastructure',group:'Mobility Specialist',
+   desc:'Deployment of integrated digital mobility infrastructure including real-time routing, shared mobility platforms, and connected transport systems across the district. Smart mobility networks optimize modal substitution — shifting private vehicle trips to active and shared modes.',
+   hint:'Think about behavioral change through digital systems: desire to use alternatives, motorized traffic reduction, noise, emissions, and economic connectivity effects.'},
+];
+
+// STATE
+let currentStep = -1;
+let responses = {}; // {strategyId: [varName,...]}
+let meta = {};
+let clusterOpen = {};
+
+function startApp(){
+  meta.session = document.getElementById('inp-session').value || 'unknown';
+  meta.bg = document.getElementById('inp-bg').value || 'unknown';
+  meta.level = document.getElementById('inp-level').value || 'unknown';
+  meta.timestamp = new Date().toISOString();
+  STRATEGIES.forEach(s => { responses[s.id] = []; });
+  document.getElementById('intro-screen').style.display = 'none';
+  document.getElementById('strategy-screen').style.display = 'flex';
+  document.getElementById('strategy-screen').style.flexDirection = 'column';
+  currentStep = 0;
+  renderStep();
+}
+
+function renderStep(){
+  if(currentStep >= STRATEGIES.length){ showResults(); return; }
+  const s = STRATEGIES[currentStep];
+  document.getElementById('s-id').textContent = s.id;
+  document.getElementById('s-name').textContent = s.name;
+  document.getElementById('s-group').textContent = s.group;
+  document.getElementById('s-desc').textContent = s.desc;
+  document.getElementById('s-hint').textContent = s.hint;
+
+  const pill = document.getElementById('s-type-pill');
+  pill.textContent = s.type;
+  pill.className = 'type-pill ' + (s.type==='Behavioral'?'type-beh':s.type==='Spatial'?'type-spa':'type-inf');
+
+  // Progress
+  const pct = (currentStep / STRATEGIES.length) * 100;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('step-counter').textContent = currentStep + ' / ' + STRATEGIES.length;
+
+  // Back button
+  document.getElementById('btn-back').style.visibility = currentStep === 0 ? 'hidden' : 'visible';
+
+  // Next button label
+  const nb = document.getElementById('btn-next');
+  nb.innerHTML = currentStep === STRATEGIES.length - 1
+    ? 'Finish <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M3 8h10M9 4l4 4-4 4"/></svg>'
+    : 'Next strategy <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M3 8h10M9 4l4 4-4 4"/></svg>';
+
+  renderClusters(s.id);
+  updateSummary(s.id);
+  window.scrollTo(0,0);
+}
+
+function renderClusters(sid){
+  const container = document.getElementById('clusters-container');
+  container.innerHTML = '';
+  CLUSTERS.forEach(c => {
+    const isOpen = clusterOpen[c.id] !== false;
+    const div = document.createElement('div');
+    div.className = 'cluster';
+
+    const head = document.createElement('div');
+    head.className = 'cluster-head';
+    head.innerHTML = `
+      <span class="cluster-dot" style="background:${c.color}"></span>
+      <span class="cluster-label">${c.label}</span>
+      <span class="cluster-count">${c.vars.length} variables</span>
+      <svg class="cluster-toggle ${isOpen?'open':''}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M4 6l4 4 4-4"/></svg>
+    `;
+    head.onclick = () => {
+      clusterOpen[c.id] = !isOpen;
+      renderClusters(sid);
+    };
+    div.appendChild(head);
+
+    if(isOpen){
+      const wrap = document.createElement('div');
+      wrap.className = 'chips-wrap';
+      c.vars.forEach(v => {
+        const sel = responses[sid].includes(v);
+        const chip = document.createElement('span');
+        chip.className = 'chip' + (sel?' selected':'');
+        chip.innerHTML = `<svg class="chip-check" viewBox="0 0 12 12" fill="currentColor" style="width:10px;height:10px"><path d="M10 3L5 8.5 2 5.5"/></svg>${v}`;
+        chip.onclick = () => toggleVar(sid, v);
+        wrap.appendChild(chip);
+      });
+      div.appendChild(wrap);
+    }
+    container.appendChild(div);
+  });
+}
+
+function toggleVar(sid, v){
+  const idx = responses[sid].indexOf(v);
+  if(idx === -1) responses[sid].push(v);
+  else responses[sid].splice(idx, 1);
+  renderClusters(sid);
+  updateSummary(sid);
+}
+
+function updateSummary(sid){
+  const n = responses[sid].length;
+  document.getElementById('sel-summary').textContent = n + ' variable' + (n!==1?'s':'') + ' selected';
+}
+
+function navigate(dir){
+  currentStep += dir;
+  if(currentStep < 0) currentStep = 0;
+  renderStep();
+}
+
+function showResults(){
+  document.getElementById('strategy-screen').style.display = 'none';
+  document.getElementById('prog-fill').style.width = '100%';
+  document.getElementById('step-counter').textContent = '18 / 18';
+  document.getElementById('results-screen').style.display = 'flex';
+  document.getElementById('results-screen').style.flexDirection = 'column';
+  document.getElementById('results-screen').style.alignItems = 'center';
+
+  // Build results grid
+  const grid = document.getElementById('results-grid');
+  grid.innerHTML = '';
+  STRATEGIES.forEach(s => {
+    const n = responses[s.id].length;
+    const card = document.createElement('div');
+    card.className = 'res-card';
+    card.innerHTML = `<div class="rc-name">${s.name}</div><div class="rc-count">${n}</div><div class="rc-vars">${n>0?responses[s.id].slice(0,2).join(', ')+(n>2?' +'+（n-2)+' more':''):'No variables selected'}</div>`;
+    grid.appendChild(card);
+  });
+
+  // Generate compact response code
+  const payload = {
+    meta,
+    responses: Object.fromEntries(
+      Object.entries(responses).map(([k,v])=>[k, v.map(x=>ALL_VARS.indexOf(x))])
+    ),
+    ts: Date.now()
+  };
+  const code = btoa(JSON.stringify(payload));
+  document.getElementById('code-content').textContent = code;
+  window.scrollTo(0,0);
+}
+
+function copyCode(){
+  const code = document.getElementById('code-content').textContent;
+  navigator.clipboard.writeText(code).then(()=>{
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent='Copied!';
+    setTimeout(()=>btn.textContent='Copy',2000);
+  });
+}
+</script>
+</body>
+</html>
